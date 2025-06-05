@@ -13,7 +13,7 @@ const MenuItemCard = ({ item }: MenuItemCardProps) => {
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300">
+    <div className="bg-white/95 backdrop-blur-sm rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-all duration-300 hover:scale-[1.02] border border-white/20">
       <div className="relative h-48 bg-gray-100">
         {item.photo ? (
           <>
