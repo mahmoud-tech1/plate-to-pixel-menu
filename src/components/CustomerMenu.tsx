@@ -21,22 +21,7 @@ const CustomerMenu = () => {
     },
   });
 
-  if (isLoading) {
-    return <LoadingScreen />;
-  }
-
-  if (error) {
-    return (
-      <div className="min-h-screen flex items-center justify-center texture-bg">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold text-red-600 mb-2">Error Loading Menu</h2>
-          <p className="text-gray-600">Please try again later</p>
-        </div>
-      </div>
-    );
-  }
-
-  // Group items by category
+  // Group items by category - moved this logic up
   const groupedItems = menuItems?.reduce((groups: Record<string, MenuItem[]>, item: MenuItem) => {
     const category = item.category || 'Other';
     if (!groups[category]) {
@@ -48,23 +33,10 @@ const CustomerMenu = () => {
 
   const categories = Object.keys(groupedItems).sort();
 
-  const scrollToCategory = (category: string) => {
-    setActiveCategory(category);
-    const element = document.getElementById(`category-${category}`);
-    if (element) {
-      const headerOffset = 120;
-      const elementPosition = element.getBoundingClientRect().top;
-      const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
-      
-      window.scrollTo({
-        top: offsetPosition,
-        behavior: 'smooth'
-      });
-    }
-  };
-
-  // Update active category on scroll
+  // Update active category on scroll - moved this hook before any returns
   useEffect(() => {
+    if (categories.length === 0) return;
+
     const handleScroll = () => {
       const categoryElements = categories.map(category => 
         document.getElementById(`category-${category}`)
@@ -84,6 +56,36 @@ const CustomerMenu = () => {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, [categories]);
+
+  const scrollToCategory = (category: string) => {
+    setActiveCategory(category);
+    const element = document.getElementById(`category-${category}`);
+    if (element) {
+      const headerOffset = 120;
+      const elementPosition = element.getBoundingClientRect().top;
+      const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+      
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: 'smooth'
+      });
+    }
+  };
+
+  if (isLoading) {
+    return <LoadingScreen />;
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center texture-bg">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-red-600 mb-2">Error Loading Menu</h2>
+          <p className="text-gray-600">Please try again later</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen texture-bg">
