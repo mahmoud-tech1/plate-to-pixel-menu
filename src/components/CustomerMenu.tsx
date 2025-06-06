@@ -5,7 +5,7 @@ import LoadingScreen from './LoadingScreen';
 import MenuCategory from './MenuCategory';
 import MobileCategoryNav from './MobileCategoryNav';
 import { MenuItem } from '../types/MenuItem';
-import { ChefHat } from 'lucide-react';
+import { ChefHat, Sparkles } from 'lucide-react';
 
 const CustomerMenu = () => {
   const [activeCategory, setActiveCategory] = useState<string>('');
@@ -78,25 +78,35 @@ const CustomerMenu = () => {
 
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center texture-bg">
+      <div className="min-h-screen flex items-center justify-center fast-food-bg">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-red-600 mb-2">Error Loading Menu</h2>
-          <p className="text-gray-600">Please try again later</p>
+          <h2 className="text-2xl font-bold text-red-600 mb-2 playful-font">Oops! Something went wrong</h2>
+          <p className="text-gray-600 playful-font">Please try again later</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen texture-bg">
-      {/* Header */}
-      <header className="bg-white/90 backdrop-blur-sm shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 py-6">
+    <div className="min-h-screen fast-food-bg">
+      {/* Enhanced Header */}
+      <header className="bg-gradient-to-r from-orange-500 via-red-500 to-pink-500 shadow-xl">
+        <div className="max-w-7xl mx-auto px-4 py-8">
           <div className="flex items-center justify-center">
-            <ChefHat className="w-8 h-8 text-emerald-600 mr-3" />
-            <h1 className="text-3xl font-bold text-gray-900">Our Menu</h1>
+            <div className="bg-white/20 backdrop-blur-sm rounded-full p-3 mr-4 float-animation">
+              <ChefHat className="w-10 h-10 text-white" />
+            </div>
+            <div className="text-center">
+              <h1 className="text-4xl md:text-5xl font-bold text-white playful-font tracking-tight">
+                Our Menu
+              </h1>
+              <div className="flex items-center justify-center mt-2">
+                <Sparkles className="w-5 h-5 text-yellow-300 mr-2" />
+                <p className="text-white/90 text-lg playful-font">Delicious food, made with love</p>
+                <Sparkles className="w-5 h-5 text-yellow-300 ml-2" />
+              </div>
+            </div>
           </div>
-          <p className="text-center text-gray-600 mt-2">Discover our delicious selection</p>
         </div>
       </header>
 
@@ -107,18 +117,18 @@ const CustomerMenu = () => {
         onCategoryClick={scrollToCategory}
       />
 
-      {/* Desktop Category Navigation - Hidden on mobile */}
-      <div className="hidden md:block bg-white/80 backdrop-blur-sm border-b sticky top-0 z-30">
+      {/* Desktop Category Navigation */}
+      <div className="hidden md:block bg-white/90 backdrop-blur-md border-b border-orange-200 sticky top-0 z-30 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 py-4">
-          <div className="flex justify-center space-x-6">
+          <div className="flex justify-center space-x-4">
             {categories.map((category) => (
               <button
                 key={category}
                 onClick={() => scrollToCategory(category)}
-                className={`px-4 py-2 rounded-lg transition-colors ${
+                className={`category-button px-6 py-3 rounded-full font-medium text-sm ${
                   activeCategory === category
-                    ? 'bg-emerald-600 text-white'
-                    : 'text-gray-700 hover:bg-emerald-50'
+                    ? 'bg-gradient-to-r from-emerald-500 to-emerald-600 text-white shadow-lg active'
+                    : 'bg-white/80 text-gray-700 hover:bg-orange-50 border border-orange-200'
                 }`}
               >
                 {category}
@@ -132,7 +142,10 @@ const CustomerMenu = () => {
       <main className="max-w-7xl mx-auto px-4 py-8">
         {categories.length === 0 ? (
           <div className="text-center py-12">
-            <p className="text-gray-500 text-lg">No menu items available</p>
+            <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 border border-orange-200">
+              <p className="text-gray-500 text-lg playful-font">No delicious items available right now</p>
+              <p className="text-gray-400 text-sm mt-2 playful-font">Check back soon!</p>
+            </div>
           </div>
         ) : (
           <div className="space-y-12">
