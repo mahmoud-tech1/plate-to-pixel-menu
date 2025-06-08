@@ -18,9 +18,12 @@ const RestaurantDashboard = ({ restaurant, onLogout }: RestaurantDashboardProps)
   const [editingItem, setEditingItem] = useState<MenuItem | null>(null);
   const { toast } = useToast();
 
+  console.log('Restaurant data:', restaurant);
+
   const { data: menuItems, isLoading, refetch } = useQuery({
     queryKey: ['restaurantMenuItems', restaurant.id],
     queryFn: async () => {
+      console.log('Fetching menu items for restaurant ID:', restaurant.id);
       const response = await fetch(`http://localhost:8080/api/menuitems/findAllByRestaurant/${restaurant.id}`);
       if (!response.ok) {
         throw new Error('Failed to fetch menu items');
@@ -46,7 +49,7 @@ const RestaurantDashboard = ({ restaurant, onLogout }: RestaurantDashboardProps)
 
   const handleDelete = async (id: number) => {
     try {
-      const response = await fetch(`https://menu-backend-56ur.onrender.com/api/menuitems/${id}`, {
+      const response = await fetch(`http://localhost:8080/api/menuitems/${id}`, {
         method: 'DELETE',
       });
       
