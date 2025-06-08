@@ -18,13 +18,17 @@ const RestaurantDashboard = ({ restaurant, onLogout }: RestaurantDashboardProps)
   const [editingItem, setEditingItem] = useState<MenuItem | null>(null);
   const { toast } = useToast();
 
+  // Extract the actual restaurant data from the nested structure
+  const restaurantData = restaurant.restaurant || restaurant;
+  
   console.log('Restaurant data:', restaurant);
+  console.log('Restaurant ID being used:', restaurantData.id);
 
   const { data: menuItems, isLoading, refetch } = useQuery({
-    queryKey: ['restaurantMenuItems', restaurant.id],
+    queryKey: ['restaurantMenuItems', restaurantData.id],
     queryFn: async () => {
-      console.log('Fetching menu items for restaurant ID:', restaurant.id);
-      const response = await fetch(`http://localhost:8080/api/menuitems/findAllByRestaurant/${restaurant.id}`);
+      console.log('Fetching menu items for restaurant ID:', restaurantData.id);
+      const response = await fetch(`http://localhost:8080/api/menuitems/findAllByRestaurant/${restaurantData.id}`);
       if (!response.ok) {
         throw new Error('Failed to fetch menu items');
       }
@@ -77,13 +81,13 @@ const RestaurantDashboard = ({ restaurant, onLogout }: RestaurantDashboardProps)
         <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
           <div className="flex items-center">
             <div className="flex items-center mr-4">
-              {restaurant.logo ? (
-                <img src={restaurant.logo} alt={restaurant.name} className="w-10 h-10 rounded-full object-cover mr-3" />
+              {restaurantData.logo ? (
+                <img src={restaurantData.logo} alt={restaurantData.name} className="w-10 h-10 rounded-full object-cover mr-3" />
               ) : (
                 <Store className="w-8 h-8 text-emerald-600 mr-3" />
               )}
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">{restaurant.name}</h1>
+                <h1 className="text-2xl font-bold text-gray-900">{restaurantData.name}</h1>
                 <p className="text-sm text-gray-500">Restaurant Dashboard</p>
               </div>
             </div>
