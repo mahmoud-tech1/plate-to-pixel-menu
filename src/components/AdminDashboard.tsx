@@ -1,9 +1,10 @@
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import AdminLogin from './AdminLogin';
 import MenuItemForm from './MenuItemForm';
 import AdminMenuList from './AdminMenuList';
+import AdminMenuFilters from './AdminMenuFilters';
 import { MenuItem } from '../types/MenuItem';
 import { Button } from '@/components/ui/button';
 import { LogOut, Plus } from 'lucide-react';
@@ -13,10 +14,18 @@ interface AdminDashboardProps {
   onExitAdmin: () => void;
 }
 
+interface FilterState {
+  restaurant?: string;
+  priceMin?: number;
+  priceMax?: number;
+}
+
 const AdminDashboard = ({ onExitAdmin }: AdminDashboardProps) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [editingItem, setEditingItem] = useState<MenuItem | null>(null);
+  const [filters, setFilters] = useState<FilterState>({});
+  const [randomItemId, setRandomItemId] = useState<number | null>(null);
   const { toast } = useToast();
 
   const { data: menuItems, isLoading, refetch } = useQuery({
@@ -30,6 +39,35 @@ const AdminDashboard = ({ onExitAdmin }: AdminDashboardProps) => {
     },
     enabled: isAuthenticated,
   });
+
+  // Filter menu items based on current filters
+  const filteredItems = useMemo(() => {
+    if (!menuItems) return [];
+    
+    let filtered = [...menuItems];
+    
+    if (filters.restaurant) {
+      filtered = filtered.filter(item => item.restaurantId?.toString() === filters.restaurant);
+    }
+    
+    if (filters.priceMin !== undefined) {
+      filtered = filtered.filter(item => item.price >= filters.priceMin!);
+    }
+    
+    if (filters.priceMax !== undefined) {
+      filtered = filtered.filter(item => item.price <= filters.priceMax!);
+    }
+    
+    // If we have a random item selected, move it to the top
+    if (randomItemId) {
+      const randomItem = filtered.find(item => item.id === randomItemId);
+      if (randomItem) {
+        filtered = [randomItem, ...filtered.filter(item => item.id !== randomItemId)];
+      }
+    }
+    
+    return filtered;
+  }, [menuItems, filters, randomItemId]);
 
   const handleLogin = () => {
     setIsAuthenticated(true);
@@ -85,6 +123,19 @@ const AdminDashboard = ({ onExitAdmin }: AdminDashboardProps) => {
     }
   };
 
+  const handleFilterChange = (newFilters: FilterState) => {
+    setFilters(newFilters);
+    setRandomItemId(null); // Clear random selection when filters change
+  };
+
+  const handleRandomItem = () => {
+    if (menuItems && menuItems.length > 0) {
+      const randomIndex = Math.floor(Math.random() * menuItems.length);
+      setRandomItemId(menuItems[randomIndex].id);
+      setFilters({}); // Clear filters to show the random item
+    }
+  };
+
   if (!isAuthenticated) {
     return <AdminLogin onLogin={handleLogin} onCancel={onExitAdmin} />;
   }
@@ -114,6 +165,13 @@ const AdminDashboard = ({ onExitAdmin }: AdminDashboardProps) => {
       </header>
 
       <main className="max-w-7xl mx-auto px-4 py-8">
+        {!showForm && (
+          <AdminMenuFilters
+            onFilterChange={handleFilterChange}
+            onRandomItem={handleRandomItem}
+          />
+        )}
+
         {showForm ? (
           <div className="bg-white rounded-lg shadow-md p-6">
             <h2 className="text-xl font-semibold mb-4">
@@ -130,7 +188,7 @@ const AdminDashboard = ({ onExitAdmin }: AdminDashboardProps) => {
           </div>
         ) : (
           <AdminMenuList
-            items={menuItems || []}
+            items={filteredItems}
             isLoading={isLoading}
             onEdit={handleEdit}
             onDelete={handleDelete}

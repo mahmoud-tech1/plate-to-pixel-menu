@@ -3,9 +3,10 @@ import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import MenuItemForm from './MenuItemForm';
 import AdminMenuList from './AdminMenuList';
+import RestaurantProfile from './RestaurantProfile';
 import { MenuItem } from '../types/MenuItem';
 import { Button } from '@/components/ui/button';
-import { LogOut, Plus, Store } from 'lucide-react';
+import { LogOut, Plus, Store, User } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface RestaurantDashboardProps {
@@ -15,13 +16,15 @@ interface RestaurantDashboardProps {
 
 const RestaurantDashboard = ({ restaurant, onLogout }: RestaurantDashboardProps) => {
   const [showForm, setShowForm] = useState(false);
+  const [showProfile, setShowProfile] = useState(false);
   const [editingItem, setEditingItem] = useState<MenuItem | null>(null);
+  const [currentRestaurant, setCurrentRestaurant] = useState(restaurant);
   const { toast } = useToast();
 
   // Extract the actual restaurant data from the nested structure
-  const restaurantData = restaurant.restaurant || restaurant;
+  const restaurantData = currentRestaurant.restaurant || currentRestaurant;
   
-  console.log('Restaurant data:', restaurant);
+  console.log('Restaurant data:', currentRestaurant);
   console.log('Restaurant ID being used:', restaurantData.id);
 
   const { data: menuItems, isLoading, refetch } = useQuery({
@@ -49,6 +52,7 @@ const RestaurantDashboard = ({ restaurant, onLogout }: RestaurantDashboardProps)
   const handleEdit = (item: MenuItem) => {
     setEditingItem(item);
     setShowForm(true);
+    setShowProfile(false);
   };
 
   const handleDelete = async (id: number) => {
@@ -75,6 +79,10 @@ const RestaurantDashboard = ({ restaurant, onLogout }: RestaurantDashboardProps)
     }
   };
 
+  const handleProfileUpdate = (updatedRestaurant: any) => {
+    setCurrentRestaurant({ restaurant: updatedRestaurant });
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <header className="bg-white shadow-sm border-b">
@@ -95,8 +103,20 @@ const RestaurantDashboard = ({ restaurant, onLogout }: RestaurantDashboardProps)
           <div className="flex items-center space-x-4">
             <Button
               onClick={() => {
+                setShowProfile(!showProfile);
+                setShowForm(false);
+                setEditingItem(null);
+              }}
+              variant="outline"
+            >
+              <User className="w-4 h-4 mr-2" />
+              Profile
+            </Button>
+            <Button
+              onClick={() => {
                 setEditingItem(null);
                 setShowForm(true);
+                setShowProfile(false);
               }}
               className="bg-emerald-600 hover:bg-emerald-700"
             >
@@ -112,6 +132,13 @@ const RestaurantDashboard = ({ restaurant, onLogout }: RestaurantDashboardProps)
       </header>
 
       <main className="max-w-7xl mx-auto px-4 py-8">
+        {showProfile && (
+          <RestaurantProfile
+            restaurant={restaurantData}
+            onUpdate={handleProfileUpdate}
+          />
+        )}
+
         {showForm ? (
           <div className="bg-white rounded-lg shadow-md p-6">
             <h2 className="text-xl font-semibold mb-4">
@@ -126,14 +153,14 @@ const RestaurantDashboard = ({ restaurant, onLogout }: RestaurantDashboardProps)
               }}
             />
           </div>
-        ) : (
+        ) : !showProfile ? (
           <AdminMenuList
             items={menuItems || []}
             isLoading={isLoading}
             onEdit={handleEdit}
             onDelete={handleDelete}
           />
-        )}
+        ) : null}
       </main>
     </div>
   );
