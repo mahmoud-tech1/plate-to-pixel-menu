@@ -31,14 +31,26 @@ const RestaurantProfile = ({ restaurant, onUpdate }: RestaurantProfileProps) => 
 
   const form = useForm({
     defaultValues: {
-      name: restaurant.name,
-      username: restaurant.username,
-      description: restaurant.description,
-      phone_number: restaurant.phone_number,
-      logo: restaurant.logo,
-      status: restaurant.status,
+      name: restaurant.name || '',
+      username: restaurant.username || '',
+      description: restaurant.description || '',
+      phone_number: restaurant.phone_number || '',
+      logo: restaurant.logo || '',
+      status: restaurant.status || 'active',
     },
   });
+
+  // Reset form when restaurant data changes
+  useState(() => {
+    form.reset({
+      name: restaurant.name || '',
+      username: restaurant.username || '',
+      description: restaurant.description || '',
+      phone_number: restaurant.phone_number || '',
+      logo: restaurant.logo || '',
+      status: restaurant.status || 'active',
+    });
+  }, [restaurant, form]);
 
   const onSubmit = async (data: any) => {
     setIsLoading(true);
@@ -130,7 +142,14 @@ const RestaurantProfile = ({ restaurant, onUpdate }: RestaurantProfileProps) => 
         <Button
           onClick={() => {
             setIsEditing(false);
-            form.reset();
+            form.reset({
+              name: restaurant.name || '',
+              username: restaurant.username || '',
+              description: restaurant.description || '',
+              phone_number: restaurant.phone_number || '',
+              logo: restaurant.logo || '',
+              status: restaurant.status || 'active',
+            });
           }}
           variant="outline"
           size="sm"

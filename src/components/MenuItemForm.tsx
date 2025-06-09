@@ -1,5 +1,6 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -11,9 +12,11 @@ interface MenuItemFormProps {
   item?: MenuItem | null;
   onSuccess: () => void;
   onCancel: () => void;
+  restaurantId?: number;
+  isAdminMode?: boolean;
 }
 
-const MenuItemForm = ({ item, onSuccess, onCancel }: MenuItemFormProps) => {
+const MenuItemForm = ({ item, onSuccess, onCancel, restaurantId, isAdminMode = false }: MenuItemFormProps) => {
   const [formData, setFormData] = useState({
     item_name: item?.item_name || '',
     price: item?.price?.toString() || '',
@@ -22,11 +25,40 @@ const MenuItemForm = ({ item, onSuccess, onCancel }: MenuItemFormProps) => {
     photo: item?.photo || '',
     created_by: item?.created_by || 'admin',
     updated_by: 'admin',
+    restaurantId: item?.restaurantId || restaurantId || '',
   });
+  const [newCategory, setNewCategory] = useState('');
+  const [isCreatingCategory, setIsCreatingCategory] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
 
-  const categories = [
+  // Fetch restaurants for admin mode
+  const { data: restaurants } = useQuery({
+    queryKey: ['restaurants'],
+    queryFn: async () => {
+      const response = await fetch('http://localhost:8080/api/restaurants/');
+      if (!response.ok) throw new Error('Failed to fetch restaurants');
+      return response.json();
+    },
+    enabled: isAdminMode,
+  });
+
+  // Fetch existing categories for the restaurant
+  const { data: existingCategories } = useQuery({
+    queryKey: ['categories', formData.restaurantId],
+    queryFn: async () => {
+      if (!formData.restaurantId) return [];
+      const response = await fetch(`http://localhost:8080/api/menuitems/findAllByRestaurant/${formData.restaurantId}`);
+      if (!response.ok) throw new Error('Failed to fetch menu items');
+      const items = await response.json();
+      // Extract unique categories
+      const categories = [...new Set(items.map((item: MenuItem) => item.category).filter(Boolean))];
+      return categories;
+    },
+    enabled: !!formData.restaurantId,
+  });
+
+  const defaultCategories = [
     'Appetizers',
     'Main Courses',
     'Desserts',
@@ -38,6 +70,11 @@ const MenuItemForm = ({ item, onSuccess, onCancel }: MenuItemFormProps) => {
     'Pasta',
     'Other'
   ];
+
+  // Combine existing and default categories
+  const allCategories = existingCategories 
+    ? [...new Set([...existingCategories, ...defaultCategories])]
+    : defaultCategories;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -51,12 +88,21 @@ const MenuItemForm = ({ item, onSuccess, onCancel }: MenuItemFormProps) => {
       return;
     }
 
+    if (isAdminMode && !formData.restaurantId) {
+      toast({
+        title: "Validation Error",
+        description: "Please select a restaurant.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
       const url = item
-        ? `https://menu-backend-56ur.onrender.com/api/menuitems/${item.id}`
-        : 'https://menu-backend-56ur.onrender.com/api/menuitems';
+        ? `http://localhost:8080/api/menuitems/${item.id}`
+        : 'http://localhost:8080/api/menuitems';
       
       const method = item ? 'PUT' : 'POST';
       
@@ -68,6 +114,7 @@ const MenuItemForm = ({ item, onSuccess, onCancel }: MenuItemFormProps) => {
         body: JSON.stringify({
           ...formData,
           price: parseFloat(formData.price),
+          restaurantId: parseInt(formData.restaurantId.toString()),
         }),
       });
 
@@ -84,6 +131,14 @@ const MenuItemForm = ({ item, onSuccess, onCancel }: MenuItemFormProps) => {
       });
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleAddNewCategory = () => {
+    if (newCategory.trim()) {
+      setFormData({ ...formData, category: newCategory.trim() });
+      setNewCategory('');
+      setIsCreatingCategory(false);
     }
   };
 
@@ -118,25 +173,92 @@ const MenuItemForm = ({ item, onSuccess, onCancel }: MenuItemFormProps) => {
         </div>
       </div>
 
+      {isAdminMode && (
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Restaurant *
+          </label>
+          <Select
+            value={formData.restaurantId.toString()}
+            onValueChange={(value) => setFormData({ ...formData, restaurantId: value })}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Select a restaurant" />
+            </SelectTrigger>
+            <SelectContent>
+              {restaurants?.map((restaurant: any) => (
+                <SelectItem key={restaurant.id} value={restaurant.id.toString()}>
+                  {restaurant.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      )}
+
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">
           Category *
         </label>
-        <Select
-          value={formData.category}
-          onValueChange={(value) => setFormData({ ...formData, category: value })}
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="Select a category" />
-          </SelectTrigger>
-          <SelectContent>
-            {categories.map((category) => (
-              <SelectItem key={category} value={category}>
-                {category}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <div className="space-y-2">
+          <Select
+            value={formData.category}
+            onValueChange={(value) => {
+              if (value === 'create-new') {
+                setIsCreatingCategory(true);
+              } else {
+                setFormData({ ...formData, category: value });
+              }
+            }}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Select a category" />
+            </SelectTrigger>
+            <SelectContent>
+              {allCategories.map((category) => (
+                <SelectItem key={category} value={category}>
+                  {category}
+                </SelectItem>
+              ))}
+              <SelectItem value="create-new">+ Create New Category</SelectItem>
+            </SelectContent>
+          </Select>
+          
+          {isCreatingCategory && (
+            <div className="flex gap-2">
+              <Input
+                value={newCategory}
+                onChange={(e) => setNewCategory(e.target.value)}
+                placeholder="Enter new category name"
+                onKeyPress={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    handleAddNewCategory();
+                  }
+                }}
+              />
+              <Button
+                type="button"
+                onClick={handleAddNewCategory}
+                size="sm"
+                className="bg-emerald-600 hover:bg-emerald-700"
+              >
+                Add
+              </Button>
+              <Button
+                type="button"
+                onClick={() => {
+                  setIsCreatingCategory(false);
+                  setNewCategory('');
+                }}
+                variant="outline"
+                size="sm"
+              >
+                Cancel
+              </Button>
+            </div>
+          )}
+        </div>
       </div>
 
       <div>

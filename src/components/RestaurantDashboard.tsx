@@ -146,6 +146,7 @@ const RestaurantDashboard = ({ restaurant, onLogout }: RestaurantDashboardProps)
             </h2>
             <MenuItemForm
               item={editingItem}
+              restaurantId={restaurantData.id}
               onSuccess={handleFormSuccess}
               onCancel={() => {
                 setShowForm(false);
