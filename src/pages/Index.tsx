@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import CustomerMenu from '../components/CustomerMenu';
 import AdminDashboard from '../components/AdminDashboard';
 import RestaurantLogin from '../components/RestaurantLogin';
@@ -14,6 +14,21 @@ const Index = () => {
   const [restaurant, setRestaurant] = useState(null);
   const navigate = useNavigate();
 
+  // Check for existing restaurant session on component mount
+  useEffect(() => {
+    const sessionData = localStorage.getItem('restaurantSession');
+    if (sessionData) {
+      try {
+        const restaurantData = JSON.parse(sessionData);
+        setRestaurant(restaurantData);
+        setIsRestaurantMode(true);
+      } catch (error) {
+        console.error('Error parsing restaurant session:', error);
+        localStorage.removeItem('restaurantSession');
+      }
+    }
+  }, []);
+
   const handleRestaurantLogin = (restaurantData: any) => {
     setRestaurant(restaurantData);
     setIsRestaurantMode(true);
@@ -22,6 +37,7 @@ const Index = () => {
   const handleRestaurantLogout = () => {
     setRestaurant(null);
     setIsRestaurantMode(false);
+    localStorage.removeItem('restaurantSession');
   };
 
   if (isAdminMode) {

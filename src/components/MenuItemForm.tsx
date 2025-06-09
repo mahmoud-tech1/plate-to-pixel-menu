@@ -55,30 +55,24 @@ const MenuItemForm = ({ item, onSuccess, onCancel, restaurantId, isAdminMode = f
       const response = await fetch(`http://localhost:8080/api/menuitems/findAllByRestaurant/${formData.restaurantId}`);
       if (!response.ok) throw new Error('Failed to fetch menu items');
       const items = await response.json();
-      // Extract unique categories
+      // Extract unique categories from existing items
       const categories = [...new Set(items.map((item: MenuItem) => item.category).filter(Boolean))];
       return categories;
     },
     enabled: !!formData.restaurantId,
   });
 
-  const defaultCategories = [
-    'Appetizers',
-    'Main Courses',
-    'Desserts',
-    'Beverages',
-    'Salads',
-    'Soups',
-    'Sandwiches',
-    'Pizza',
-    'Pasta',
-    'Other'
-  ];
-
-  // Combine existing and default categories
-  const allCategories = existingCategories 
-    ? [...new Set([...existingCategories, ...defaultCategories])]
-    : defaultCategories;
+  // Set restaurantId from session if not in admin mode
+  useEffect(() => {
+    if (!isAdminMode && !item) {
+      const sessionData = localStorage.getItem('restaurantSession');
+      if (sessionData) {
+        const restaurant = JSON.parse(sessionData);
+        const restaurantId = restaurant.restaurant?.id || restaurant.id;
+        setFormData(prev => ({ ...prev, restaurantId }));
+      }
+    }
+  }, [isAdminMode, item]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -99,6 +93,16 @@ const MenuItemForm = ({ item, onSuccess, onCancel, restaurantId, isAdminMode = f
         variant: "destructive",
       });
       return;
+    }
+
+    // For restaurant mode, ensure restaurantId is set
+    if (!isAdminMode && !formData.restaurantId) {
+      const sessionData = localStorage.getItem('restaurantSession');
+      if (sessionData) {
+        const restaurant = JSON.parse(sessionData);
+        const restaurantId = restaurant.restaurant?.id || restaurant.id;
+        setFormData(prev => ({ ...prev, restaurantId }));
+      }
     }
 
     setIsSubmitting(true);
@@ -197,25 +201,27 @@ const MenuItemForm = ({ item, onSuccess, onCancel, restaurantId, isAdminMode = f
           Category *
         </label>
         <div className="space-y-2">
-          <Select
-            value={formData.category}
-            onValueChange={(value) => setFormData({ ...formData, category: value })}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Select a category" />
-            </SelectTrigger>
-            <SelectContent>
-              {allCategories.map((category: string) => (
-                <SelectItem key={category} value={category}>
-                  {category}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          {existingCategories && existingCategories.length > 0 && (
+            <Select
+              value={formData.category}
+              onValueChange={(value) => setFormData({ ...formData, category: value })}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select an existing category" />
+              </SelectTrigger>
+              <SelectContent>
+                {existingCategories.map((category: string) => (
+                  <SelectItem key={category} value={category}>
+                    {category}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
           
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Or enter a new category:
+              {existingCategories && existingCategories.length > 0 ? 'Or enter a new category:' : 'Enter category:'}
             </label>
             <Input
               value={newCategory}
