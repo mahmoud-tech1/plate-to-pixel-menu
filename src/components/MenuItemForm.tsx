@@ -16,6 +16,11 @@ interface MenuItemFormProps {
   isAdminMode?: boolean;
 }
 
+interface Restaurant {
+  id: number;
+  name: string;
+}
+
 const MenuItemForm = ({ item, onSuccess, onCancel, restaurantId, isAdminMode = false }: MenuItemFormProps) => {
   const [formData, setFormData] = useState({
     item_name: item?.item_name || '',
@@ -28,7 +33,6 @@ const MenuItemForm = ({ item, onSuccess, onCancel, restaurantId, isAdminMode = f
     restaurantId: item?.restaurantId || restaurantId || '',
   });
   const [newCategory, setNewCategory] = useState('');
-  const [isCreatingCategory, setIsCreatingCategory] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
 
@@ -134,14 +138,6 @@ const MenuItemForm = ({ item, onSuccess, onCancel, restaurantId, isAdminMode = f
     }
   };
 
-  const handleAddNewCategory = () => {
-    if (newCategory.trim()) {
-      setFormData({ ...formData, category: newCategory.trim() });
-      setNewCategory('');
-      setIsCreatingCategory(false);
-    }
-  };
-
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -186,7 +182,7 @@ const MenuItemForm = ({ item, onSuccess, onCancel, restaurantId, isAdminMode = f
               <SelectValue placeholder="Select a restaurant" />
             </SelectTrigger>
             <SelectContent>
-              {restaurants?.map((restaurant: any) => (
+              {restaurants?.map((restaurant: Restaurant) => (
                 <SelectItem key={restaurant.id} value={restaurant.id.toString()}>
                   {restaurant.name}
                 </SelectItem>
@@ -203,61 +199,33 @@ const MenuItemForm = ({ item, onSuccess, onCancel, restaurantId, isAdminMode = f
         <div className="space-y-2">
           <Select
             value={formData.category}
-            onValueChange={(value) => {
-              if (value === 'create-new') {
-                setIsCreatingCategory(true);
-              } else {
-                setFormData({ ...formData, category: value });
-              }
-            }}
+            onValueChange={(value) => setFormData({ ...formData, category: value })}
           >
             <SelectTrigger>
               <SelectValue placeholder="Select a category" />
             </SelectTrigger>
             <SelectContent>
-              {allCategories.map((category) => (
+              {allCategories.map((category: string) => (
                 <SelectItem key={category} value={category}>
                   {category}
                 </SelectItem>
               ))}
-              <SelectItem value="create-new">+ Create New Category</SelectItem>
             </SelectContent>
           </Select>
           
-          {isCreatingCategory && (
-            <div className="flex gap-2">
-              <Input
-                value={newCategory}
-                onChange={(e) => setNewCategory(e.target.value)}
-                placeholder="Enter new category name"
-                onKeyPress={(e) => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault();
-                    handleAddNewCategory();
-                  }
-                }}
-              />
-              <Button
-                type="button"
-                onClick={handleAddNewCategory}
-                size="sm"
-                className="bg-emerald-600 hover:bg-emerald-700"
-              >
-                Add
-              </Button>
-              <Button
-                type="button"
-                onClick={() => {
-                  setIsCreatingCategory(false);
-                  setNewCategory('');
-                }}
-                variant="outline"
-                size="sm"
-              >
-                Cancel
-              </Button>
-            </div>
-          )}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Or enter a new category:
+            </label>
+            <Input
+              value={newCategory}
+              onChange={(e) => {
+                setNewCategory(e.target.value);
+                setFormData({ ...formData, category: e.target.value });
+              }}
+              placeholder="Type a new category name"
+            />
+          </div>
         </div>
       </div>
 

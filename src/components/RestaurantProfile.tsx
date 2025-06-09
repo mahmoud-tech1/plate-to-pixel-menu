@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -41,7 +41,7 @@ const RestaurantProfile = ({ restaurant, onUpdate }: RestaurantProfileProps) => 
   });
 
   // Reset form when restaurant data changes
-  useState(() => {
+  useEffect(() => {
     form.reset({
       name: restaurant.name || '',
       username: restaurant.username || '',
