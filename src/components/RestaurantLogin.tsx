@@ -43,6 +43,10 @@ const RestaurantLogin = ({ onLogin, onCancel }: RestaurantLoginProps) => {
       }
 
       const restaurant = await response.json();
+      
+      // Store restaurant data in localStorage for session management
+      localStorage.setItem('restaurantSession', JSON.stringify(restaurant));
+      
       onLogin(restaurant);
     } catch (err) {
       setError('Network error. Please check your connection.');
