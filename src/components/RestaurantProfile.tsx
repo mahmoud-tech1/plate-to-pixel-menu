@@ -72,7 +72,7 @@ const RestaurantProfile = ({ restaurant, onUpdate }: RestaurantProfileProps) => 
         description: currentRestaurant.description || '',
         phone_number: currentRestaurant.phone_number || '',
         logo: currentRestaurant.logo || '',
-        status: currentRestaurant.status || 'active',
+        status: currentRestaurant.status || 'active', // Ensure it's never empty
       });
     }
   }, [currentRestaurant, form]);
@@ -155,7 +155,7 @@ const RestaurantProfile = ({ restaurant, onUpdate }: RestaurantProfileProps) => 
           </div>
           <div>
             <label className="text-sm font-medium text-gray-600">Status</label>
-            <p className="text-lg capitalize">{currentRestaurant.status || 'Not provided'}</p>
+            <p className="text-lg capitalize">{currentRestaurant.status || 'Active'}</p>
           </div>
           <div className="md:col-span-2">
             <label className="text-sm font-medium text-gray-600">Description</label>
@@ -188,7 +188,7 @@ const RestaurantProfile = ({ restaurant, onUpdate }: RestaurantProfileProps) => 
               description: currentRestaurant.description || '',
               phone_number: currentRestaurant.phone_number || '',
               logo: currentRestaurant.logo || '',
-              status: currentRestaurant.status || 'active',
+              status: currentRestaurant.status || 'active', // Ensure it's never empty
             });
           }}
           variant="outline"
@@ -250,7 +250,7 @@ const RestaurantProfile = ({ restaurant, onUpdate }: RestaurantProfileProps) => 
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Status</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value || 'active'}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select status" />
