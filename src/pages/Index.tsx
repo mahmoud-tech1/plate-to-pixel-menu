@@ -17,14 +17,22 @@ const Index = () => {
   // Check for existing restaurant session on component mount
   useEffect(() => {
     const sessionData = localStorage.getItem('restaurantSession');
-    if (sessionData) {
+    const restaurantId = localStorage.getItem('restaurantId');
+    
+    if (sessionData && restaurantId) {
       try {
         const restaurantData = JSON.parse(sessionData);
+        // Ensure the restaurant ID is properly set
+        if (!restaurantData.id) {
+          restaurantData.id = parseInt(restaurantId);
+        }
         setRestaurant(restaurantData);
         setIsRestaurantMode(true);
+        console.log('Restored restaurant session:', restaurantData);
       } catch (error) {
         console.error('Error parsing restaurant session:', error);
         localStorage.removeItem('restaurantSession');
+        localStorage.removeItem('restaurantId');
       }
     }
   }, []);
@@ -38,6 +46,7 @@ const Index = () => {
     setRestaurant(null);
     setIsRestaurantMode(false);
     localStorage.removeItem('restaurantSession');
+    localStorage.removeItem('restaurantId');
   };
 
   if (isAdminMode) {

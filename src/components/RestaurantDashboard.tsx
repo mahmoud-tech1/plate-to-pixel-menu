@@ -24,19 +24,23 @@ const RestaurantDashboard = ({ restaurant, onLogout }: RestaurantDashboardProps)
   // Extract the actual restaurant data from the nested structure
   const restaurantData = currentRestaurant.restaurant || currentRestaurant;
   
+  // Get restaurant ID from localStorage for consistency
+  const restaurantId = localStorage.getItem('restaurantId') || restaurantData.id;
+  
   console.log('Restaurant data:', currentRestaurant);
-  console.log('Restaurant ID being used:', restaurantData.id);
+  console.log('Restaurant ID being used:', restaurantId);
 
   const { data: menuItems, isLoading, refetch } = useQuery({
-    queryKey: ['restaurantMenuItems', restaurantData.id],
+    queryKey: ['restaurantMenuItems', restaurantId],
     queryFn: async () => {
-      console.log('Fetching menu items for restaurant ID:', restaurantData.id);
-      const response = await fetch(`https://menu-backend-56ur.onrender.com/api/menuitems/findAllByRestaurant/${restaurantData.id}`);
+      console.log('Fetching menu items for restaurant ID:', restaurantId);
+      const response = await fetch(`https://menu-backend-56ur.onrender.com/api/menuitems/findAllByRestaurant/${restaurantId}`);
       if (!response.ok) {
         throw new Error('Failed to fetch menu items');
       }
       return response.json();
     },
+    enabled: !!restaurantId,
   });
 
   const handleFormSuccess = () => {
@@ -80,12 +84,25 @@ const RestaurantDashboard = ({ restaurant, onLogout }: RestaurantDashboardProps)
   };
 
   const handleProfileUpdate = (updatedRestaurant: any) => {
+    // Update the current restaurant state with the new data
     setCurrentRestaurant({ restaurant: updatedRestaurant });
+    
+    // Also update the localStorage session with the updated data
+    const updatedSession = {
+      ...currentRestaurant,
+      restaurant: updatedRestaurant,
+      id: updatedRestaurant.id || restaurantId
+    };
+    localStorage.setItem('restaurantSession', JSON.stringify(updatedSession));
+    
+    // Ensure restaurant ID is still stored separately
+    localStorage.setItem('restaurantId', (updatedRestaurant.id || restaurantId).toString());
   };
 
   const handleLogout = () => {
     // Clear restaurant session from localStorage
     localStorage.removeItem('restaurantSession');
+    localStorage.removeItem('restaurantId');
     onLogout();
   };
 
@@ -152,7 +169,7 @@ const RestaurantDashboard = ({ restaurant, onLogout }: RestaurantDashboardProps)
             </h2>
             <MenuItemForm
               item={editingItem}
-              restaurantId={restaurantData.id}
+              restaurantId={parseInt(restaurantId)}
               onSuccess={handleFormSuccess}
               onCancel={() => {
                 setShowForm(false);
