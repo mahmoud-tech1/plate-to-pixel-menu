@@ -40,7 +40,7 @@ const MenuItemForm = ({ item, onSuccess, onCancel, restaurantId, isAdminMode = f
   const { data: restaurants } = useQuery({
     queryKey: ['restaurants'],
     queryFn: async () => {
-      const response = await fetch('http://localhost:8080/api/restaurants/');
+      const response = await fetch('https://menu-backend-56ur.onrender.com/api/restaurants/');
       if (!response.ok) throw new Error('Failed to fetch restaurants');
       return response.json();
     },
@@ -52,7 +52,7 @@ const MenuItemForm = ({ item, onSuccess, onCancel, restaurantId, isAdminMode = f
     queryKey: ['categories', formData.restaurantId],
     queryFn: async () => {
       if (!formData.restaurantId) return [];
-      const response = await fetch(`http://localhost:8080/api/menuitems/findAllByRestaurant/${formData.restaurantId}`);
+      const response = await fetch(`https://menu-backend-56ur.onrender.com/api/menuitems/findAllByRestaurant/${formData.restaurantId}`);
       if (!response.ok) throw new Error('Failed to fetch menu items');
       const items = await response.json();
       // Extract unique categories from existing items
@@ -109,8 +109,8 @@ const MenuItemForm = ({ item, onSuccess, onCancel, restaurantId, isAdminMode = f
 
     try {
       const url = item
-        ? `http://localhost:8080/api/menuitems/${item.id}`
-        : 'http://localhost:8080/api/menuitems';
+        ? `https://menu-backend-56ur.onrender.com/api/menuitems/${item.id}`
+        : 'https://menu-backend-56ur.onrender.com/api/menuitems';
       
       const method = item ? 'PUT' : 'POST';
       
@@ -204,7 +204,10 @@ const MenuItemForm = ({ item, onSuccess, onCancel, restaurantId, isAdminMode = f
           {existingCategories && existingCategories.length > 0 && (
             <Select
               value={formData.category}
-              onValueChange={(value) => setFormData({ ...formData, category: value })}
+              onValueChange={(value) => {
+                setFormData({ ...formData, category: value });
+                setNewCategory('');
+              }}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Select an existing category" />
@@ -224,12 +227,13 @@ const MenuItemForm = ({ item, onSuccess, onCancel, restaurantId, isAdminMode = f
               {existingCategories && existingCategories.length > 0 ? 'Or enter a new category:' : 'Enter category:'}
             </label>
             <Input
-              value={newCategory}
+              value={newCategory || formData.category}
               onChange={(e) => {
                 setNewCategory(e.target.value);
                 setFormData({ ...formData, category: e.target.value });
               }}
               placeholder="Type a new category name"
+              required={!formData.category}
             />
           </div>
         </div>

@@ -45,7 +45,14 @@ const RestaurantLogin = ({ onLogin, onCancel }: RestaurantLoginProps) => {
       const restaurant = await response.json();
       
       // Store restaurant data in localStorage for session management
-      localStorage.setItem('restaurantSession', JSON.stringify(restaurant));
+      // Make sure to store the restaurant ID properly
+      const restaurantData = {
+        id: restaurant.id || restaurant.restaurant?.id,
+        ...restaurant
+      };
+      
+      localStorage.setItem('restaurantSession', JSON.stringify(restaurantData));
+      console.log('Stored restaurant session:', restaurantData);
       
       onLogin(restaurant);
     } catch (err) {

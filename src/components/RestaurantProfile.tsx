@@ -57,7 +57,7 @@ const RestaurantProfile = ({ restaurant, onUpdate }: RestaurantProfileProps) => 
     setIsLoading(true);
     try {
       console.log('Submitting form data:', data);
-      const response = await fetch(`http://localhost:8080/api/restaurants/${restaurant.id}`, {
+      const response = await fetch(`https://menu-backend-56ur.onrender.com/api/restaurants/${restaurant.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
