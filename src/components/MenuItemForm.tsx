@@ -16,11 +16,6 @@ interface MenuItemFormProps {
   isAdminMode?: boolean;
 }
 
-interface Restaurant {
-  id: number;
-  name: string;
-}
-
 const MenuItemForm = ({ item, onSuccess, onCancel, restaurantId, isAdminMode = false }: MenuItemFormProps) => {
   const [formData, setFormData] = useState({
     item_name: item?.item_name || '',
@@ -33,6 +28,7 @@ const MenuItemForm = ({ item, onSuccess, onCancel, restaurantId, isAdminMode = f
     restaurantId: item?.restaurantId || restaurantId || '',
   });
   const [newCategory, setNewCategory] = useState('');
+  const [isCreatingCategory, setIsCreatingCategory] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
 
@@ -55,24 +51,30 @@ const MenuItemForm = ({ item, onSuccess, onCancel, restaurantId, isAdminMode = f
       const response = await fetch(`http://localhost:8080/api/menuitems/findAllByRestaurant/${formData.restaurantId}`);
       if (!response.ok) throw new Error('Failed to fetch menu items');
       const items = await response.json();
-      // Extract unique categories from existing items
+      // Extract unique categories
       const categories = [...new Set(items.map((item: MenuItem) => item.category).filter(Boolean))];
       return categories;
     },
     enabled: !!formData.restaurantId,
   });
 
-  // Set restaurantId from session if not in admin mode
-  useEffect(() => {
-    if (!isAdminMode && !item) {
-      const sessionData = localStorage.getItem('restaurantSession');
-      if (sessionData) {
-        const restaurant = JSON.parse(sessionData);
-        const restaurantId = restaurant.restaurant?.id || restaurant.id;
-        setFormData(prev => ({ ...prev, restaurantId }));
-      }
-    }
-  }, [isAdminMode, item]);
+  const defaultCategories = [
+    'Appetizers',
+    'Main Courses',
+    'Desserts',
+    'Beverages',
+    'Salads',
+    'Soups',
+    'Sandwiches',
+    'Pizza',
+    'Pasta',
+    'Other'
+  ];
+
+  // Combine existing and default categories
+  const allCategories = existingCategories 
+    ? [...new Set([...existingCategories, ...defaultCategories])]
+    : defaultCategories;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -93,16 +95,6 @@ const MenuItemForm = ({ item, onSuccess, onCancel, restaurantId, isAdminMode = f
         variant: "destructive",
       });
       return;
-    }
-
-    // For restaurant mode, ensure restaurantId is set
-    if (!isAdminMode && !formData.restaurantId) {
-      const sessionData = localStorage.getItem('restaurantSession');
-      if (sessionData) {
-        const restaurant = JSON.parse(sessionData);
-        const restaurantId = restaurant.restaurant?.id || restaurant.id;
-        setFormData(prev => ({ ...prev, restaurantId }));
-      }
     }
 
     setIsSubmitting(true);
@@ -139,6 +131,14 @@ const MenuItemForm = ({ item, onSuccess, onCancel, restaurantId, isAdminMode = f
       });
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleAddNewCategory = () => {
+    if (newCategory.trim()) {
+      setFormData({ ...formData, category: newCategory.trim() });
+      setNewCategory('');
+      setIsCreatingCategory(false);
     }
   };
 
@@ -186,7 +186,7 @@ const MenuItemForm = ({ item, onSuccess, onCancel, restaurantId, isAdminMode = f
               <SelectValue placeholder="Select a restaurant" />
             </SelectTrigger>
             <SelectContent>
-              {restaurants?.map((restaurant: Restaurant) => (
+              {restaurants?.map((restaurant: any) => (
                 <SelectItem key={restaurant.id} value={restaurant.id.toString()}>
                   {restaurant.name}
                 </SelectItem>
@@ -201,37 +201,63 @@ const MenuItemForm = ({ item, onSuccess, onCancel, restaurantId, isAdminMode = f
           Category *
         </label>
         <div className="space-y-2">
-          {existingCategories && existingCategories.length > 0 && (
-            <Select
-              value={formData.category}
-              onValueChange={(value) => setFormData({ ...formData, category: value })}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select an existing category" />
-              </SelectTrigger>
-              <SelectContent>
-                {existingCategories.map((category: string) => (
-                  <SelectItem key={category} value={category}>
-                    {category}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          )}
+          <Select
+            value={formData.category}
+            onValueChange={(value) => {
+              if (value === 'create-new') {
+                setIsCreatingCategory(true);
+              } else {
+                setFormData({ ...formData, category: value });
+              }
+            }}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Select a category" />
+            </SelectTrigger>
+            <SelectContent>
+              {allCategories.map((category) => (
+                <SelectItem key={category} value={category}>
+                  {category}
+                </SelectItem>
+              ))}
+              <SelectItem value="create-new">+ Create New Category</SelectItem>
+            </SelectContent>
+          </Select>
           
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              {existingCategories && existingCategories.length > 0 ? 'Or enter a new category:' : 'Enter category:'}
-            </label>
-            <Input
-              value={newCategory}
-              onChange={(e) => {
-                setNewCategory(e.target.value);
-                setFormData({ ...formData, category: e.target.value });
-              }}
-              placeholder="Type a new category name"
-            />
-          </div>
+          {isCreatingCategory && (
+            <div className="flex gap-2">
+              <Input
+                value={newCategory}
+                onChange={(e) => setNewCategory(e.target.value)}
+                placeholder="Enter new category name"
+                onKeyPress={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    handleAddNewCategory();
+                  }
+                }}
+              />
+              <Button
+                type="button"
+                onClick={handleAddNewCategory}
+                size="sm"
+                className="bg-emerald-600 hover:bg-emerald-700"
+              >
+                Add
+              </Button>
+              <Button
+                type="button"
+                onClick={() => {
+                  setIsCreatingCategory(false);
+                  setNewCategory('');
+                }}
+                variant="outline"
+                size="sm"
+              >
+                Cancel
+              </Button>
+            </div>
+          )}
         </div>
       </div>
 

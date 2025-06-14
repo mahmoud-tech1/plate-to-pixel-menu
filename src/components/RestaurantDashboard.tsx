@@ -83,12 +83,6 @@ const RestaurantDashboard = ({ restaurant, onLogout }: RestaurantDashboardProps)
     setCurrentRestaurant({ restaurant: updatedRestaurant });
   };
 
-  const handleLogout = () => {
-    // Clear restaurant session from localStorage
-    localStorage.removeItem('restaurantSession');
-    onLogout();
-  };
-
   return (
     <div className="min-h-screen bg-gray-50">
       <header className="bg-white shadow-sm border-b">
@@ -129,7 +123,7 @@ const RestaurantDashboard = ({ restaurant, onLogout }: RestaurantDashboardProps)
               <Plus className="w-4 h-4 mr-2" />
               Add Item
             </Button>
-            <Button onClick={handleLogout} variant="outline">
+            <Button onClick={onLogout} variant="outline">
               <LogOut className="w-4 h-4 mr-2" />
               Logout
             </Button>

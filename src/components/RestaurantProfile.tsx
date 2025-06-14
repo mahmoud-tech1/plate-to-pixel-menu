@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -40,9 +40,8 @@ const RestaurantProfile = ({ restaurant, onUpdate }: RestaurantProfileProps) => 
     },
   });
 
-  // Reset form when restaurant data changes or component mounts
-  useEffect(() => {
-    console.log('Restaurant data received:', restaurant);
+  // Reset form when restaurant data changes
+  useState(() => {
     form.reset({
       name: restaurant.name || '',
       username: restaurant.username || '',
@@ -56,7 +55,6 @@ const RestaurantProfile = ({ restaurant, onUpdate }: RestaurantProfileProps) => 
   const onSubmit = async (data: any) => {
     setIsLoading(true);
     try {
-      console.log('Submitting form data:', data);
       const response = await fetch(`http://localhost:8080/api/restaurants/${restaurant.id}`, {
         method: 'PUT',
         headers: {
@@ -70,7 +68,6 @@ const RestaurantProfile = ({ restaurant, onUpdate }: RestaurantProfileProps) => 
       }
 
       const updatedRestaurant = await response.json();
-      console.log('Updated restaurant response:', updatedRestaurant);
       onUpdate(updatedRestaurant);
       setIsEditing(false);
       toast({
@@ -78,7 +75,6 @@ const RestaurantProfile = ({ restaurant, onUpdate }: RestaurantProfileProps) => 
         description: "Restaurant profile updated successfully.",
       });
     } catch (error) {
-      console.error('Error updating restaurant:', error);
       toast({
         title: "Error",
         description: "Failed to update restaurant profile.",
@@ -107,28 +103,28 @@ const RestaurantProfile = ({ restaurant, onUpdate }: RestaurantProfileProps) => 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="text-sm font-medium text-gray-600">Restaurant Name</label>
-            <p className="text-lg">{restaurant.name || 'Not provided'}</p>
+            <p className="text-lg">{restaurant.name}</p>
           </div>
           <div>
             <label className="text-sm font-medium text-gray-600">Username</label>
-            <p className="text-lg">{restaurant.username || 'Not provided'}</p>
+            <p className="text-lg">{restaurant.username}</p>
           </div>
           <div>
             <label className="text-sm font-medium text-gray-600">Phone Number</label>
-            <p className="text-lg">{restaurant.phone_number || 'Not provided'}</p>
+            <p className="text-lg">{restaurant.phone_number}</p>
           </div>
           <div>
             <label className="text-sm font-medium text-gray-600">Status</label>
-            <p className="text-lg capitalize">{restaurant.status || 'Not provided'}</p>
+            <p className="text-lg capitalize">{restaurant.status}</p>
           </div>
           <div className="md:col-span-2">
             <label className="text-sm font-medium text-gray-600">Description</label>
-            <p className="text-lg">{restaurant.description || 'Not provided'}</p>
+            <p className="text-lg">{restaurant.description}</p>
           </div>
           <div className="md:col-span-2">
             <label className="text-sm font-medium text-gray-600">Logo URL</label>
             <div className="flex items-center space-x-4">
-              <p className="text-lg break-all">{restaurant.logo || 'Not provided'}</p>
+              <p className="text-lg break-all">{restaurant.logo}</p>
               {restaurant.logo && (
                 <img src={restaurant.logo} alt="Logo" className="w-12 h-12 rounded-full object-cover" />
               )}
