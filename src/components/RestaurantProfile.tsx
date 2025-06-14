@@ -1,6 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
+import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -29,29 +30,46 @@ const RestaurantProfile = ({ restaurant, onUpdate }: RestaurantProfileProps) => 
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
+  // Fetch full restaurant data by ID
+  const { data: fullRestaurantData, refetch } = useQuery({
+    queryKey: ['restaurant', restaurant.id],
+    queryFn: async () => {
+      const response = await fetch(`https://menu-backend-56ur.onrender.com/api/restaurants/${restaurant.id}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch restaurant details');
+      }
+      return response.json();
+    },
+    enabled: !!restaurant.id,
+  });
+
+  const currentRestaurant = fullRestaurantData || restaurant;
+
   const form = useForm({
     defaultValues: {
-      name: restaurant.name || '',
-      username: restaurant.username || '',
-      description: restaurant.description || '',
-      phone_number: restaurant.phone_number || '',
-      logo: restaurant.logo || '',
-      status: restaurant.status || 'active',
+      name: '',
+      username: '',
+      description: '',
+      phone_number: '',
+      logo: '',
+      status: 'active',
     },
   });
 
-  // Reset form when restaurant data changes or component mounts
+  // Reset form when restaurant data changes
   useEffect(() => {
-    console.log('Restaurant data received:', restaurant);
-    form.reset({
-      name: restaurant.name || '',
-      username: restaurant.username || '',
-      description: restaurant.description || '',
-      phone_number: restaurant.phone_number || '',
-      logo: restaurant.logo || '',
-      status: restaurant.status || 'active',
-    });
-  }, [restaurant, form]);
+    if (currentRestaurant) {
+      console.log('Populating form with restaurant data:', currentRestaurant);
+      form.reset({
+        name: currentRestaurant.name || '',
+        username: currentRestaurant.username || '',
+        description: currentRestaurant.description || '',
+        phone_number: currentRestaurant.phone_number || '',
+        logo: currentRestaurant.logo || '',
+        status: currentRestaurant.status || 'active',
+      });
+    }
+  }, [currentRestaurant, form]);
 
   const onSubmit = async (data: any) => {
     setIsLoading(true);
@@ -73,6 +91,7 @@ const RestaurantProfile = ({ restaurant, onUpdate }: RestaurantProfileProps) => 
       console.log('Updated restaurant response:', updatedRestaurant);
       onUpdate(updatedRestaurant);
       setIsEditing(false);
+      refetch(); // Refresh the data
       toast({
         title: "Success!",
         description: "Restaurant profile updated successfully.",
@@ -107,30 +126,30 @@ const RestaurantProfile = ({ restaurant, onUpdate }: RestaurantProfileProps) => 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="text-sm font-medium text-gray-600">Restaurant Name</label>
-            <p className="text-lg">{restaurant.name || 'Not provided'}</p>
+            <p className="text-lg">{currentRestaurant.name || 'Not provided'}</p>
           </div>
           <div>
             <label className="text-sm font-medium text-gray-600">Username</label>
-            <p className="text-lg">{restaurant.username || 'Not provided'}</p>
+            <p className="text-lg">{currentRestaurant.username || 'Not provided'}</p>
           </div>
           <div>
             <label className="text-sm font-medium text-gray-600">Phone Number</label>
-            <p className="text-lg">{restaurant.phone_number || 'Not provided'}</p>
+            <p className="text-lg">{currentRestaurant.phone_number || 'Not provided'}</p>
           </div>
           <div>
             <label className="text-sm font-medium text-gray-600">Status</label>
-            <p className="text-lg capitalize">{restaurant.status || 'Not provided'}</p>
+            <p className="text-lg capitalize">{currentRestaurant.status || 'Not provided'}</p>
           </div>
           <div className="md:col-span-2">
             <label className="text-sm font-medium text-gray-600">Description</label>
-            <p className="text-lg">{restaurant.description || 'Not provided'}</p>
+            <p className="text-lg">{currentRestaurant.description || 'Not provided'}</p>
           </div>
           <div className="md:col-span-2">
             <label className="text-sm font-medium text-gray-600">Logo URL</label>
             <div className="flex items-center space-x-4">
-              <p className="text-lg break-all">{restaurant.logo || 'Not provided'}</p>
-              {restaurant.logo && (
-                <img src={restaurant.logo} alt="Logo" className="w-12 h-12 rounded-full object-cover" />
+              <p className="text-lg break-all">{currentRestaurant.logo || 'Not provided'}</p>
+              {currentRestaurant.logo && (
+                <img src={currentRestaurant.logo} alt="Logo" className="w-12 h-12 rounded-full object-cover" />
               )}
             </div>
           </div>
@@ -147,12 +166,12 @@ const RestaurantProfile = ({ restaurant, onUpdate }: RestaurantProfileProps) => 
           onClick={() => {
             setIsEditing(false);
             form.reset({
-              name: restaurant.name || '',
-              username: restaurant.username || '',
-              description: restaurant.description || '',
-              phone_number: restaurant.phone_number || '',
-              logo: restaurant.logo || '',
-              status: restaurant.status || 'active',
+              name: currentRestaurant.name || '',
+              username: currentRestaurant.username || '',
+              description: currentRestaurant.description || '',
+              phone_number: currentRestaurant.phone_number || '',
+              logo: currentRestaurant.logo || '',
+              status: currentRestaurant.status || 'active',
             });
           }}
           variant="outline"

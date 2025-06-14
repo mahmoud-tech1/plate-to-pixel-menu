@@ -133,6 +133,10 @@ const AdminDashboard = ({ onExitAdmin }: AdminDashboardProps) => {
       const randomIndex = Math.floor(Math.random() * menuItems.length);
       setRandomItemId(menuItems[randomIndex].id);
       setFilters({}); // Clear filters to show the random item
+      toast({
+        title: "Surprise! 🎲",
+        description: "Here's a random menu item for you!",
+      });
     }
   };
 

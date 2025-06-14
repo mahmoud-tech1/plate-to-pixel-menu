@@ -33,6 +33,7 @@ const MenuItemForm = ({ item, onSuccess, onCancel, restaurantId, isAdminMode = f
     restaurantId: item?.restaurantId || restaurantId || '',
   });
   const [newCategory, setNewCategory] = useState('');
+  const [showNewCategoryInput, setShowNewCategoryInput] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
 
@@ -69,6 +70,7 @@ const MenuItemForm = ({ item, onSuccess, onCancel, restaurantId, isAdminMode = f
       if (sessionData) {
         const restaurant = JSON.parse(sessionData);
         const restaurantId = restaurant.restaurant?.id || restaurant.id;
+        console.log('Setting restaurantId from session:', restaurantId);
         setFormData(prev => ({ ...prev, restaurantId }));
       }
     }
@@ -95,14 +97,24 @@ const MenuItemForm = ({ item, onSuccess, onCancel, restaurantId, isAdminMode = f
       return;
     }
 
-    // For restaurant mode, ensure restaurantId is set
-    if (!isAdminMode && !formData.restaurantId) {
+    // For restaurant mode, ensure restaurantId is set from session
+    let finalRestaurantId = formData.restaurantId;
+    if (!isAdminMode && !finalRestaurantId) {
       const sessionData = localStorage.getItem('restaurantSession');
       if (sessionData) {
         const restaurant = JSON.parse(sessionData);
-        const restaurantId = restaurant.restaurant?.id || restaurant.id;
-        setFormData(prev => ({ ...prev, restaurantId }));
+        finalRestaurantId = restaurant.restaurant?.id || restaurant.id;
+        console.log('Using restaurantId from session for submission:', finalRestaurantId);
       }
+    }
+
+    if (!finalRestaurantId) {
+      toast({
+        title: "Error",
+        description: "Restaurant ID is required. Please log in again.",
+        variant: "destructive",
+      });
+      return;
     }
 
     setIsSubmitting(true);
@@ -114,16 +126,20 @@ const MenuItemForm = ({ item, onSuccess, onCancel, restaurantId, isAdminMode = f
       
       const method = item ? 'PUT' : 'POST';
       
+      const submitData = {
+        ...formData,
+        price: parseFloat(formData.price),
+        restaurantId: parseInt(finalRestaurantId.toString()),
+      };
+
+      console.log('Submitting menu item data:', submitData);
+      
       const response = await fetch(url, {
         method,
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          ...formData,
-          price: parseFloat(formData.price),
-          restaurantId: parseInt(formData.restaurantId.toString()),
-        }),
+        body: JSON.stringify(submitData),
       });
 
       if (!response.ok) {
@@ -132,6 +148,7 @@ const MenuItemForm = ({ item, onSuccess, onCancel, restaurantId, isAdminMode = f
 
       onSuccess();
     } catch (error) {
+      console.error('Error saving menu item:', error);
       toast({
         title: "Error",
         description: "Failed to save menu item. Please try again.",
@@ -140,6 +157,23 @@ const MenuItemForm = ({ item, onSuccess, onCancel, restaurantId, isAdminMode = f
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handleCategoryChange = (value: string) => {
+    if (value === 'add_new') {
+      setShowNewCategoryInput(true);
+      setFormData({ ...formData, category: '' });
+      setNewCategory('');
+    } else {
+      setShowNewCategoryInput(false);
+      setFormData({ ...formData, category: value });
+      setNewCategory('');
+    }
+  };
+
+  const handleNewCategoryChange = (value: string) => {
+    setNewCategory(value);
+    setFormData({ ...formData, category: value });
   };
 
   return (
@@ -201,41 +235,36 @@ const MenuItemForm = ({ item, onSuccess, onCancel, restaurantId, isAdminMode = f
           Category *
         </label>
         <div className="space-y-2">
-          {existingCategories && existingCategories.length > 0 && (
-            <Select
-              value={formData.category}
-              onValueChange={(value) => {
-                setFormData({ ...formData, category: value });
-                setNewCategory('');
-              }}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select an existing category" />
-              </SelectTrigger>
-              <SelectContent>
-                {existingCategories.map((category: string) => (
-                  <SelectItem key={category} value={category}>
-                    {category}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          )}
+          <Select
+            value={showNewCategoryInput ? 'add_new' : formData.category}
+            onValueChange={handleCategoryChange}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Select a category" />
+            </SelectTrigger>
+            <SelectContent>
+              {existingCategories?.map((category: string) => (
+                <SelectItem key={category} value={category}>
+                  {category}
+                </SelectItem>
+              ))}
+              <SelectItem value="add_new">+ Add New Category</SelectItem>
+            </SelectContent>
+          </Select>
           
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              {existingCategories && existingCategories.length > 0 ? 'Or enter a new category:' : 'Enter category:'}
-            </label>
-            <Input
-              value={newCategory || formData.category}
-              onChange={(e) => {
-                setNewCategory(e.target.value);
-                setFormData({ ...formData, category: e.target.value });
-              }}
-              placeholder="Type a new category name"
-              required={!formData.category}
-            />
-          </div>
+          {showNewCategoryInput && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Enter new category:
+              </label>
+              <Input
+                value={newCategory}
+                onChange={(e) => handleNewCategoryChange(e.target.value)}
+                placeholder="Type a new category name"
+                required
+              />
+            </div>
+          )}
         </div>
       </div>
 
