@@ -40,25 +40,27 @@ const RestaurantProfileEdit = ({ restaurant, isLoading, onSubmit, onCancel }: Re
   useEffect(() => {
     if (restaurant) {
       console.log('Populating form with restaurant data:', restaurant);
+      const statusValue = restaurant.status && restaurant.status.trim() !== '' ? restaurant.status : 'active';
       form.reset({
         name: restaurant.name || '',
         username: restaurant.username || '',
         description: restaurant.description || '',
         phone_number: restaurant.phone_number || '',
         logo: restaurant.logo || '',
-        status: restaurant.status || 'active',
+        status: statusValue,
       });
     }
   }, [restaurant, form]);
 
   const handleCancel = () => {
+    const statusValue = restaurant.status && restaurant.status.trim() !== '' ? restaurant.status : 'active';
     form.reset({
       name: restaurant.name || '',
       username: restaurant.username || '',
       description: restaurant.description || '',
       phone_number: restaurant.phone_number || '',
       logo: restaurant.logo || '',
-      status: restaurant.status || 'active',
+      status: statusValue,
     });
     onCancel();
   };
@@ -128,7 +130,11 @@ const RestaurantProfileEdit = ({ restaurant, isLoading, onSubmit, onCancel }: Re
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Status</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value || 'active'}>
+                  <Select 
+                    onValueChange={field.onChange} 
+                    value={field.value || 'active'}
+                    defaultValue="active"
+                  >
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select status" />
