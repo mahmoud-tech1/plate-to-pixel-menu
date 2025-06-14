@@ -30,17 +30,23 @@ const RestaurantProfile = ({ restaurant, onUpdate }: RestaurantProfileProps) => 
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
+  // Get restaurant ID from localStorage for consistency
+  const restaurantId = localStorage.getItem('restaurantId') || restaurant.id;
+
   // Fetch full restaurant data by ID
   const { data: fullRestaurantData, refetch } = useQuery({
-    queryKey: ['restaurant', restaurant.id],
+    queryKey: ['restaurant', restaurantId],
     queryFn: async () => {
-      const response = await fetch(`https://menu-backend-56ur.onrender.com/api/restaurants/${restaurant.id}`);
+      console.log('Fetching restaurant details for ID:', restaurantId);
+      const response = await fetch(`https://menu-backend-56ur.onrender.com/api/restaurants/${restaurantId}`);
       if (!response.ok) {
         throw new Error('Failed to fetch restaurant details');
       }
-      return response.json();
+      const data = await response.json();
+      console.log('Fetched restaurant data:', data);
+      return data;
     },
-    enabled: !!restaurant.id,
+    enabled: !!restaurantId,
   });
 
   const currentRestaurant = fullRestaurantData || restaurant;
@@ -75,7 +81,7 @@ const RestaurantProfile = ({ restaurant, onUpdate }: RestaurantProfileProps) => 
     setIsLoading(true);
     try {
       console.log('Submitting form data:', data);
-      const response = await fetch(`https://menu-backend-56ur.onrender.com/api/restaurants/${restaurant.id}`, {
+      const response = await fetch(`https://menu-backend-56ur.onrender.com/api/restaurants/${restaurantId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -87,11 +93,22 @@ const RestaurantProfile = ({ restaurant, onUpdate }: RestaurantProfileProps) => 
         throw new Error('Failed to update restaurant');
       }
 
-      const updatedRestaurant = await response.json();
-      console.log('Updated restaurant response:', updatedRestaurant);
+      const updateResponse = await response.json();
+      console.log('Update response:', updateResponse);
+
+      // Since the API only returns { message: "success" }, we need to fetch the updated data
+      await refetch(); // This will trigger a new fetch and update fullRestaurantData
+      
+      // Get the fresh data after refetch
+      const freshData = await fetch(`https://menu-backend-56ur.onrender.com/api/restaurants/${restaurantId}`);
+      const updatedRestaurant = await freshData.json();
+      console.log('Fresh restaurant data after update:', updatedRestaurant);
+      
+      // Update the parent component with fresh data
       onUpdate(updatedRestaurant);
+      
       setIsEditing(false);
-      refetch(); // Refresh the data
+      
       toast({
         title: "Success!",
         description: "Restaurant profile updated successfully.",
