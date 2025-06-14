@@ -8,5 +8,4 @@ export interface MenuItem {
   photo?: string;
   created_by: string;
   updated_by: string;
-  restaurantId?: number;
 }
