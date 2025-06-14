@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
@@ -26,7 +25,7 @@ const AdminMenuFilters = ({ onFilterChange, onRandomItem }: FilterProps) => {
   const { data: restaurants } = useQuery({
     queryKey: ['restaurants'],
     queryFn: async () => {
-      const response = await fetch('http://localhost:8080/api/restaurants/');
+      const response = await fetch('https://menu-backend-56ur.onrender.com/api/restaurants/');
       if (!response.ok) throw new Error('Failed to fetch restaurants');
       return response.json();
     },

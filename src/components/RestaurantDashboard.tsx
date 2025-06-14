@@ -31,7 +31,7 @@ const RestaurantDashboard = ({ restaurant, onLogout }: RestaurantDashboardProps)
     queryKey: ['restaurantMenuItems', restaurantData.id],
     queryFn: async () => {
       console.log('Fetching menu items for restaurant ID:', restaurantData.id);
-      const response = await fetch(`http://localhost:8080/api/menuitems/findAllByRestaurant/${restaurantData.id}`);
+      const response = await fetch(`https://menu-backend-56ur.onrender.com/api/menuitems/findAllByRestaurant/${restaurantData.id}`);
       if (!response.ok) {
         throw new Error('Failed to fetch menu items');
       }
@@ -57,7 +57,7 @@ const RestaurantDashboard = ({ restaurant, onLogout }: RestaurantDashboardProps)
 
   const handleDelete = async (id: number) => {
     try {
-      const response = await fetch(`http://localhost:8080/api/menuitems/${id}`, {
+      const response = await fetch(`https://menu-backend-56ur.onrender.com/api/menuitems/${id}`, {
         method: 'DELETE',
       });
       
