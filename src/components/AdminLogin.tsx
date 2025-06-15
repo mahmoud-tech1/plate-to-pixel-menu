@@ -10,6 +10,9 @@ interface AdminLoginProps {
   onCancel: () => void;
 }
 
+const adminUsername = "admin";
+const adminPassword = "123456";
+
 const AdminLogin = ({ onLogin, onCancel }: AdminLoginProps) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -18,11 +21,11 @@ const AdminLogin = ({ onLogin, onCancel }: AdminLoginProps) => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Simple demo authentication - in real app, use proper authentication
-    if (username === 'admin' && password === 'admin123') {
+    if (username === adminUsername && password === adminPassword) {
+      localStorage.setItem('admin_logged_in', 'true');
       onLogin();
     } else {
-      setError('Invalid credentials. Use admin/admin123');
+      setError('Invalid credentials. Use admin/123456');
     }
   };
 
@@ -72,7 +75,7 @@ const AdminLogin = ({ onLogin, onCancel }: AdminLoginProps) => {
               Login
             </Button>
             <p className="text-xs text-gray-500 text-center">
-              Demo credentials: admin / admin123
+              Demo credentials: admin / 123456
             </p>
           </form>
         </CardContent>

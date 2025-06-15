@@ -1,5 +1,4 @@
-
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import AdminLogin from './AdminLogin';
 import AdminDashboardHeader from './AdminDashboardHeader';
@@ -25,6 +24,14 @@ const AdminDashboard = ({ onExitAdmin }: AdminDashboardProps) => {
   const [randomItemId, setRandomItemId] = useState<number | null>(null);
   const { toast } = useToast();
 
+  // Check for existing admin session on component mount
+  useEffect(() => {
+    const adminLoggedIn = localStorage.getItem('admin_logged_in');
+    if (adminLoggedIn === 'true') {
+      setIsAuthenticated(true);
+    }
+  }, []);
+
   const { data: menuItems, isLoading, refetch } = useQuery({
     queryKey: ['adminMenuItems'],
     queryFn: async () => {
@@ -46,6 +53,7 @@ const AdminDashboard = ({ onExitAdmin }: AdminDashboardProps) => {
   };
 
   const handleLogout = () => {
+    localStorage.removeItem('admin_logged_in');
     setIsAuthenticated(false);
     setShowForm(false);
     setEditingItem(null);
@@ -103,14 +111,14 @@ const AdminDashboard = ({ onExitAdmin }: AdminDashboardProps) => {
 
   const handleFilterChange = (newFilters: FilterState) => {
     setFilters(newFilters);
-    setRandomItemId(null); // Clear random selection when filters change
+    setRandomItemId(null);
   };
 
   const handleRandomItem = () => {
     if (menuItems && menuItems.length > 0) {
       const randomIndex = Math.floor(Math.random() * menuItems.length);
       setRandomItemId(menuItems[randomIndex].id);
-      setFilters({}); // Clear filters to show the random item
+      setFilters({});
     }
   };
 
