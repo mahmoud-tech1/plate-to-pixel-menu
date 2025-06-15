@@ -33,19 +33,14 @@ const RestaurantProfileEdit = ({ restaurant, isLoading, onSubmit, onCancel }: Re
       description: '',
       phone_number: '',
       logo: '',
-      status: 'active', // Always default to 'active', never empty string
+      status: 'active',
     },
   });
 
   useEffect(() => {
     if (restaurant) {
       console.log('Populating form with restaurant data:', restaurant);
-      console.log('Restaurant status received:', restaurant.status);
-      
-      // Ensure status is never empty or undefined
       const statusValue = restaurant.status && restaurant.status.trim() !== '' ? restaurant.status : 'active';
-      console.log('Status value being set:', statusValue);
-      
       form.reset({
         name: restaurant.name || '',
         username: restaurant.username || '',
@@ -132,36 +127,27 @@ const RestaurantProfileEdit = ({ restaurant, isLoading, onSubmit, onCancel }: Re
             <FormField
               control={form.control}
               name="status"
-              render={({ field }) => {
-                console.log('Status field value:', field.value);
-                // Ensure field value is never empty string
-                const currentValue = field.value || 'active';
-                console.log('Current status value for Select:', currentValue);
-                
-                return (
-                  <FormItem>
-                    <FormLabel>Status</FormLabel>
-                    <Select 
-                      onValueChange={(value) => {
-                        console.log('Status changed to:', value);
-                        field.onChange(value);
-                      }} 
-                      value={currentValue}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select status" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="active">Active</SelectItem>
-                        <SelectItem value="inactive">Inactive</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                );
-              }}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Status</FormLabel>
+                  <Select 
+                    onValueChange={field.onChange} 
+                    value={field.value || 'active'}
+                    defaultValue="active"
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select status" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="active">Active</SelectItem>
+                      <SelectItem value="inactive">Inactive</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
           </div>
 
