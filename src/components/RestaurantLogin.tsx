@@ -16,54 +16,41 @@ const RestaurantLogin = ({ onLogin, onCancel }: RestaurantLoginProps) => {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
+  // Mock restaurant data for testing
+  const mockRestaurant = {
+    id: 1,
+    name: "Demo Restaurant",
+    username: "demo",
+    description: "A demo restaurant for testing",
+    phone_number: "+1234567890",
+    logo: "https://thumbs.dreamstime.com/b/tft-letter-logo-design-white-background-creative-circle-concept-254290496.jpg",
+    status: "active"
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setIsLoading(true);
     
-    try {
-      const response = await fetch('https://menu-backend-56ur.onrender.com/api/restaurants/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          username,
-          PASSWORD: password,
-        }),
-      });
-
-      if (!response.ok) {
-        if (response.status === 401) {
-          setError('Invalid username or password');
-        } else {
-          setError('Login failed. Please try again.');
-        }
-        return;
-      }
-
-      const restaurant = await response.json();
+    console.log('Login attempt with:', { username, password });
+    
+    // Use fixed credentials for demo
+    if (username === 'demo' && password === 'demo123') {
+      console.log('Login successful, using mock data:', mockRestaurant);
       
       // Store restaurant data in localStorage for session management
-      // Ensure we extract and store the restaurant ID properly
-      const restaurantData = {
-        id: restaurant.id || restaurant.restaurant?.id,
-        ...restaurant
-      };
+      localStorage.setItem('restaurantSession', JSON.stringify(mockRestaurant));
+      localStorage.setItem('restaurantId', mockRestaurant.id.toString());
       
-      // Store both the full restaurant data and the ID separately for easy access
-      localStorage.setItem('restaurantSession', JSON.stringify(restaurantData));
-      localStorage.setItem('restaurantId', restaurantData.id.toString());
+      console.log('Stored restaurant session:', mockRestaurant);
+      console.log('Stored restaurant ID:', mockRestaurant.id);
       
-      console.log('Stored restaurant session:', restaurantData);
-      console.log('Stored restaurant ID:', restaurantData.id);
-      
-      onLogin(restaurant);
-    } catch (err) {
-      setError('Network error. Please check your connection.');
-    } finally {
-      setIsLoading(false);
+      onLogin(mockRestaurant);
+    } else {
+      setError('Invalid credentials. Use demo/demo123');
     }
+    
+    setIsLoading(false);
   };
 
   return (
@@ -117,6 +104,9 @@ const RestaurantLogin = ({ onLogin, onCancel }: RestaurantLoginProps) => {
             >
               {isLoading ? 'Logging in...' : 'Login'}
             </Button>
+            <p className="text-xs text-gray-500 text-center">
+              Demo credentials: demo / demo123
+            </p>
           </form>
         </CardContent>
       </Card>
