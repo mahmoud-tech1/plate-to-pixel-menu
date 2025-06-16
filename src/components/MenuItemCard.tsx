@@ -52,8 +52,8 @@ const MenuItemCard = ({ item }: MenuItemCardProps) => {
           </div>
         )}
         
-        {/* Price tag with playful design */}
-        <div className="absolute top-3 right-3 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white px-3 py-1 rounded-full shadow-lg transform rotate-3">
+        {/* Price tag with warm colors to match background */}
+        <div className="absolute top-3 right-3 bg-gradient-to-r from-orange-500 to-red-500 text-white px-3 py-1 rounded-full shadow-lg transform rotate-3">
           <span className="text-lg font-bold playful-font">
             ${typeof item.price === 'number' ? item.price.toFixed(2) : item.price}
           </span>
