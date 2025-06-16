@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
@@ -97,12 +98,19 @@ const RestaurantMenu = () => {
     }
   };
 
+  // Determine background class based on restaurant username
+  const backgroundClass = restaurantName === 'tft' 
+    ? 'min-h-screen bg-gradient-to-br from-blue-100 via-blue-50 to-indigo-100'
+    : 'min-h-screen fast-food-bg';
+
   if (!restaurant) {
     return (
-      <div className="min-h-screen flex items-center justify-center fast-food-bg">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold text-red-600 mb-2 playful-font">Restaurant Not Found</h2>
-          <p className="text-gray-600 playful-font">The restaurant you're looking for doesn't exist</p>
+      <div className={backgroundClass}>
+        <div className="flex items-center justify-center h-screen">
+          <div className="text-center">
+            <h2 className="text-2xl font-bold text-red-600 mb-2 playful-font">Restaurant Not Found</h2>
+            <p className="text-gray-600 playful-font">The restaurant you're looking for doesn't exist</p>
+          </div>
         </div>
       </div>
     );
@@ -114,17 +122,19 @@ const RestaurantMenu = () => {
 
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center fast-food-bg">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold text-red-600 mb-2 playful-font">Oops! Something went wrong</h2>
-          <p className="text-gray-600 playful-font">Please try again later</p>
+      <div className={backgroundClass}>
+        <div className="flex items-center justify-center h-screen">
+          <div className="text-center">
+            <h2 className="text-2xl font-bold text-red-600 mb-2 playful-font">Oops! Something went wrong</h2>
+            <p className="text-gray-600 playful-font">Please try again later</p>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen fast-food-bg">
+    <div className={backgroundClass}>
       {/* Restaurant Header */}
       <header className="bg-gradient-to-r from-orange-500 via-red-500 to-pink-500 shadow-xl">
         <div className="max-w-7xl mx-auto px-4 py-8">
