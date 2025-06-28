@@ -56,7 +56,6 @@ const AdminDashboardMain = ({
       ) : (
         <div className="space-y-6">
           <AdminMenuFilters
-            filters={filters}
             onFilterChange={onFilterChange}
             onRandomItem={onRandomItem}
           />
@@ -65,7 +64,6 @@ const AdminDashboardMain = ({
             isLoading={isLoading}
             onEdit={onEdit}
             onDelete={onDelete}
-            randomItemId={randomItemId}
           />
         </div>
       )}

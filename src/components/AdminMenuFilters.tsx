@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
@@ -34,7 +35,7 @@ const AdminMenuFilters = ({ onFilterChange, onRandomItem }: FilterProps) => {
   const handleFilterChange = () => {
     const filters: any = {};
     
-    if (selectedRestaurant) {
+    if (selectedRestaurant && selectedRestaurant !== 'all') {
       filters.restaurant = selectedRestaurant;
     }
     
@@ -78,7 +79,7 @@ const AdminMenuFilters = ({ onFilterChange, onRandomItem }: FilterProps) => {
                 <SelectValue placeholder="All restaurants" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All restaurants</SelectItem>
+                <SelectItem value="all">All restaurants</SelectItem>
                 {restaurants?.map((restaurant: any) => (
                   <SelectItem key={restaurant.id} value={restaurant.id.toString()}>
                     {restaurant.name}
