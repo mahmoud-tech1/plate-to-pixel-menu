@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
@@ -99,7 +100,7 @@ const MenuItemForm = ({ item, onSuccess, onCancel, restaurantId, isAdminMode = f
       const formData = new FormData();
       formData.append('image', file);
 
-      const response = await fetch('http://localhost:8080/api/upload/upload-image', {
+      const response = await fetch('https://menu-backend-56ur.onrender.com/api/upload/upload-image', {
         method: 'POST',
         body: formData,
       });
