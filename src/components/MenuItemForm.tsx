@@ -99,7 +99,7 @@ const MenuItemForm = ({ item, onSuccess, onCancel, restaurantId, isAdminMode = f
       const formData = new FormData();
       formData.append('image', file);
 
-      const response = await fetch('https://menu-backend-56ur.onrender.com/api/upload-image', {
+      const response = await fetch('http://localhost:8080/api/upload/upload-image', {
         method: 'POST',
         body: formData,
       });
@@ -109,10 +109,10 @@ const MenuItemForm = ({ item, onSuccess, onCancel, restaurantId, isAdminMode = f
       }
 
       const data = await response.json();
-      console.log('Image uploaded successfully:', data.url);
+      console.log('Image uploaded successfully:', data.imageUrl);
       
-      // Update the form data with the uploaded image URL
-      setFormData(prev => ({ ...prev, photo: data.url }));
+      // Update the form data with the uploaded image URL from the new response format
+      setFormData(prev => ({ ...prev, photo: data.imageUrl }));
       
       toast({
         title: "Image uploaded",
