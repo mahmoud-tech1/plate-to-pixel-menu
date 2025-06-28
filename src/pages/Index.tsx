@@ -1,94 +1,38 @@
 
-import { useState, useEffect } from 'react';
-import CustomerMenu from '../components/CustomerMenu';
-import AdminDashboard from '../components/AdminDashboard';
-import RestaurantLogin from '../components/RestaurantLogin';
-import RestaurantDashboard from '../components/RestaurantDashboard';
 import { Button } from '@/components/ui/button';
-import { ChefHat, Shield, Store } from 'lucide-react';
+import { Shield, Store } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const Index = () => {
-  const [isAdminMode, setIsAdminMode] = useState(false);
-  const [isRestaurantMode, setIsRestaurantMode] = useState(false);
-  const [restaurant, setRestaurant] = useState(null);
   const navigate = useNavigate();
 
-  // Check for existing restaurant session on component mount
-  useEffect(() => {
-    const sessionData = localStorage.getItem('restaurantSession');
-    const restaurantId = localStorage.getItem('restaurantId');
-    
-    if (sessionData && restaurantId) {
-      try {
-        const restaurantData = JSON.parse(sessionData);
-        // Ensure the restaurant ID is properly set
-        if (!restaurantData.id) {
-          restaurantData.id = parseInt(restaurantId);
-        }
-        setRestaurant(restaurantData);
-        setIsRestaurantMode(true);
-        console.log('Restored restaurant session:', restaurantData);
-      } catch (error) {
-        console.error('Error parsing restaurant session:', error);
-        localStorage.removeItem('restaurantSession');
-        localStorage.removeItem('restaurantId');
-      }
-    }
-  }, []);
-
-  const handleRestaurantLogin = (restaurantData: any) => {
-    setRestaurant(restaurantData);
-    setIsRestaurantMode(true);
-  };
-
-  const handleRestaurantLogout = () => {
-    setRestaurant(null);
-    setIsRestaurantMode(false);
-    localStorage.removeItem('restaurantSession');
-    localStorage.removeItem('restaurantId');
-  };
-
-  if (isAdminMode) {
-    return <AdminDashboard onExitAdmin={() => setIsAdminMode(false)} />;
-  }
-
-  if (isRestaurantMode && restaurant) {
-    return <RestaurantDashboard restaurant={restaurant} onLogout={handleRestaurantLogout} />;
-  }
-
-  if (isRestaurantMode && !restaurant) {
-    return <RestaurantLogin onLogin={handleRestaurantLogin} onCancel={() => setIsRestaurantMode(false)} />;
-  }
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
-      <CustomerMenu />
-      <div className="fixed bottom-6 right-6 flex flex-col space-y-3">
-        <Button
-          onClick={() => navigate('/restaurants')}
-          className="bg-blue-600 hover:bg-blue-700 text-white shadow-lg"
-          size="sm"
-        >
-          <ChefHat className="w-4 h-4 mr-2" />
-          Restaurants
-        </Button>
-        <Button
-          onClick={() => setIsRestaurantMode(true)}
-          className="bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg"
-          size="sm"
-        >
-          <Store className="w-4 h-4 mr-2" />
-          Restaurant
-        </Button>
-        <Button
-          onClick={() => setIsAdminMode(true)}
-          className="bg-slate-800 hover:bg-slate-700 text-white shadow-lg"
-          size="sm"
-        >
-          <Shield className="w-4 h-4 mr-2" />
-          Admin
-        </Button>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center">
+      <div className="bg-white rounded-lg shadow-lg p-8 max-w-md w-full mx-4">
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Plate to Pixel</h1>
+          <p className="text-gray-600">Choose your login type</p>
+        </div>
+        
+        <div className="space-y-4">
+          <Button
+            onClick={() => navigate('/ad-login')}
+            className="w-full bg-slate-800 hover:bg-slate-700 text-white py-3 text-lg"
+            size="lg"
+          >
+            <Shield className="w-5 h-5 mr-3" />
+            Admin Login
+          </Button>
+          
+          <Button
+            onClick={() => navigate('/login')}
+            className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3 text-lg"
+            size="lg"
+          >
+            <Store className="w-5 h-5 mr-3" />
+            Restaurant Login
+          </Button>
+        </div>
       </div>
     </div>
   );

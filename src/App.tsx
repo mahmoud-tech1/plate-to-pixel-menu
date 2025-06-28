@@ -5,6 +5,10 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
+import AdminLogin from "./pages/admin/AdminLogin";
+import AdminDashboard from "./pages/admin/AdminDashboard";
+import RestaurantLogin from "./pages/restaurant/RestaurantLogin";
+import RestaurantDashboard from "./pages/restaurant/RestaurantDashboard";
 import RestaurantMenu from "./pages/RestaurantMenu";
 import RestaurantsPage from "./pages/RestaurantsPage";
 import NotFound from "./pages/NotFound";
@@ -19,6 +23,10 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />
+          <Route path="/ad-login" element={<AdminLogin />} />
+          <Route path="/admin-dashboard" element={<AdminDashboard />} />
+          <Route path="/login" element={<RestaurantLogin />} />
+          <Route path="/restaurant-dashboard" element={<RestaurantDashboard />} />
           <Route path="/restaurants" element={<RestaurantsPage />} />
           <Route path="/:restaurantName" element={<RestaurantMenu />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
