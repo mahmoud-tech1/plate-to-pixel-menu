@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
@@ -35,6 +34,7 @@ const MenuItemForm = ({ item, onSuccess, onCancel, restaurantId, isAdminMode = f
   const [newCategory, setNewCategory] = useState('');
   const [showNewCategoryInput, setShowNewCategoryInput] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
   const { toast } = useToast();
 
   // Fetch restaurants for admin mode
@@ -75,6 +75,62 @@ const MenuItemForm = ({ item, onSuccess, onCancel, restaurantId, isAdminMode = f
       }
     }
   }, [isAdminMode, item]);
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file size (3MB limit)
+    const maxSize = 3 * 1024 * 1024; // 3MB in bytes
+    if (file.size > maxSize) {
+      toast({
+        title: "Image size too large",
+        description: "Image size cannot exceed 3MB.",
+        variant: "destructive",
+      });
+      // Clear the file input
+      e.target.value = '';
+      return;
+    }
+
+    setIsUploadingImage(true);
+
+    try {
+      const formData = new FormData();
+      formData.append('image', file);
+
+      const response = await fetch('https://menu-backend-56ur.onrender.com/api/upload-image', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to upload image');
+      }
+
+      const data = await response.json();
+      console.log('Image uploaded successfully:', data.url);
+      
+      // Update the form data with the uploaded image URL
+      setFormData(prev => ({ ...prev, photo: data.url }));
+      
+      toast({
+        title: "Image uploaded",
+        description: "Image uploaded successfully!",
+      });
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      toast({
+        title: "Upload failed",
+        description: "Failed to upload image. Please try again.",
+        variant: "destructive",
+      });
+      // Clear the file input on error
+      e.target.value = '';
+    } finally {
+      setIsUploadingImage(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -282,14 +338,25 @@ const MenuItemForm = ({ item, onSuccess, onCancel, restaurantId, isAdminMode = f
 
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">
-          Photo URL
+          Item Photo
         </label>
-        <Input
-          type="url"
-          value={formData.photo}
-          onChange={(e) => setFormData({ ...formData, photo: e.target.value })}
-          placeholder="https://example.com/image.jpg"
-        />
+        <div className="space-y-2">
+          <Input
+            type="file"
+            accept="image/*"
+            onChange={handleImageUpload}
+            disabled={isUploadingImage}
+            className="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100"
+          />
+          {isUploadingImage && (
+            <p className="text-sm text-gray-600">Uploading image...</p>
+          )}
+          {formData.photo && (
+            <p className="text-sm text-gray-600">
+              Image uploaded: {formData.photo.substring(0, 50)}...
+            </p>
+          )}
+        </div>
       </div>
 
       <div className="flex justify-end space-x-3 pt-4">
@@ -298,7 +365,7 @@ const MenuItemForm = ({ item, onSuccess, onCancel, restaurantId, isAdminMode = f
         </Button>
         <Button
           type="submit"
-          disabled={isSubmitting}
+          disabled={isSubmitting || isUploadingImage}
           className="bg-emerald-600 hover:bg-emerald-700"
         >
           {isSubmitting ? 'Saving...' : (item ? 'Update Item' : 'Add Item')}
