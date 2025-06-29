@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -17,16 +17,32 @@ const AdminLogin = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
+  // Check for existing admin session on component mount
+  useEffect(() => {
+    const adminSession = document.cookie
+      .split('; ')
+      .find(row => row.startsWith('admin_session='));
+    
+    if (adminSession) {
+      navigate('/ad-dashboard');
+    }
+  }, [navigate]);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
     if (username === adminUsername && password === adminPassword) {
+      // Set cookie for 24 hours
+      const expires = new Date();
+      expires.setTime(expires.getTime() + (24 * 60 * 60 * 1000));
+      document.cookie = `admin_session=true; expires=${expires.toUTCString()}; path=/`;
+      
       localStorage.setItem('admin_logged_in', 'true');
       toast({
         title: "Welcome back!",
         description: "Successfully logged in to admin dashboard.",
       });
-      navigate('/admin-dashboard');
+      navigate('/ad-dashboard');
     } else {
       setError('Invalid credentials. Use admin/123456');
     }

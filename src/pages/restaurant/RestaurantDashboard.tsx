@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
@@ -8,29 +7,26 @@ import { MenuItem } from '../../types/MenuItem';
 import { useToast } from '@/hooks/use-toast';
 
 const RestaurantDashboard = () => {
-  const [restaurant, setRestaurant] = useState<any>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [restaurantData, setRestaurantData] = useState<any>(null);
   const [showForm, setShowForm] = useState(false);
-  const [showProfile, setShowProfile] = useState(false);
   const [editingItem, setEditingItem] = useState<MenuItem | null>(null);
   const { toast } = useToast();
   const navigate = useNavigate();
 
   // Check for existing restaurant session on component mount
   useEffect(() => {
-    const sessionData = localStorage.getItem('restaurantSession');
-    const restaurantId = localStorage.getItem('restaurantId');
+    const restaurantSession = document.cookie
+      .split('; ')
+      .find(row => row.startsWith('restaurant_session='));
     
-    if (sessionData && restaurantId) {
+    if (restaurantSession) {
       try {
-        const restaurantData = JSON.parse(sessionData);
-        if (!restaurantData.id) {
-          restaurantData.id = parseInt(restaurantId);
-        }
-        setRestaurant(restaurantData);
+        const sessionData = JSON.parse(restaurantSession.split('=')[1]);
+        setRestaurantData(sessionData);
+        setIsAuthenticated(true);
       } catch (error) {
         console.error('Error parsing restaurant session:', error);
-        localStorage.removeItem('restaurantSession');
-        localStorage.removeItem('restaurantId');
         navigate('/login');
       }
     } else {
@@ -38,20 +34,35 @@ const RestaurantDashboard = () => {
     }
   }, [navigate]);
 
-  const restaurantData = restaurant?.restaurant || restaurant;
-  const restaurantId = localStorage.getItem('restaurantId') || restaurantData?.id;
-
   const { data: menuItems, isLoading, refetch } = useQuery({
-    queryKey: ['restaurantMenuItems', restaurantId],
+    queryKey: ['restaurantMenuItems', restaurantData?.id],
     queryFn: async () => {
-      const response = await fetch(`https://menu-backend-56ur.onrender.com/api/menuitems/findAllByRestaurant/${restaurantId}`);
+      if (!restaurantData?.id) return [];
+      const response = await fetch(`https://menu-backend-56ur.onrender.com/api/menuitems/restaurant/${restaurantData.id}`);
       if (!response.ok) {
         throw new Error('Failed to fetch menu items');
       }
       return response.json();
     },
-    enabled: !!restaurantId,
+    enabled: isAuthenticated && !!restaurantData?.id,
   });
+
+  const handleLogout = () => {
+    // Clear cookie
+    document.cookie = 'restaurant_session=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+    localStorage.removeItem('restaurantSession');
+    localStorage.removeItem('restaurantId');
+    setIsAuthenticated(false);
+    setRestaurantData(null);
+    setShowForm(false);
+    setEditingItem(null);
+    navigate('/');
+  };
+
+  const handleAddItem = () => {
+    setEditingItem(null);
+    setShowForm(true);
+  };
 
   const handleFormSuccess = () => {
     setShowForm(false);
@@ -63,10 +74,14 @@ const RestaurantDashboard = () => {
     });
   };
 
+  const handleFormCancel = () => {
+    setShowForm(false);
+    setEditingItem(null);
+  };
+
   const handleEdit = (item: MenuItem) => {
     setEditingItem(item);
     setShowForm(true);
-    setShowProfile(false);
   };
 
   const handleDelete = async (id: number) => {
@@ -93,61 +108,64 @@ const RestaurantDashboard = () => {
     }
   };
 
-  const handleProfileUpdate = (updatedRestaurant: any) => {
-    setRestaurant({ restaurant: updatedRestaurant });
-    
-    const updatedSession = {
-      ...restaurant,
-      restaurant: updatedRestaurant,
-      id: updatedRestaurant.id || restaurantId
-    };
-    localStorage.setItem('restaurantSession', JSON.stringify(updatedSession));
-    localStorage.setItem('restaurantId', (updatedRestaurant.id || restaurantId).toString());
-  };
-
-  const handleLogout = () => {
-    localStorage.removeItem('restaurantSession');
-    localStorage.removeItem('restaurantId');
-    navigate('/');
-  };
-
-  if (!restaurant) {
+  if (!isAuthenticated || !restaurantData) {
     return null; // Will redirect to login
   }
 
   return (
     <div className="min-h-screen bg-gray-50">
       <RestaurantDashboardHeader
-        restaurant={restaurantData}
-        onAddItem={() => {
-          setEditingItem(null);
-          setShowForm(true);
-          setShowProfile(false);
-        }}
-        onShowProfile={() => {
-          setShowProfile(!showProfile);
-          setShowForm(false);
-          setEditingItem(null);
-        }}
+        restaurantName={restaurantData.name}
+        onAddItem={() => setShowForm(true)}
         onLogout={handleLogout}
       />
-
+      
       <RestaurantDashboardMain
-        restaurant={restaurantData}
         showForm={showForm}
-        showProfile={showProfile}
         editingItem={editingItem}
-        menuItems={menuItems || []}
+        menuItems={menuItems}
         isLoading={isLoading}
-        restaurantId={parseInt(restaurantId)}
-        onFormSuccess={handleFormSuccess}
+        restaurantId={restaurantData.id}
+        onFormSuccess={() => {
+          setShowForm(false);
+          setEditingItem(null);
+          refetch();
+          toast({
+            title: "Success!",
+            description: editingItem ? "Menu item updated successfully." : "Menu item added successfully.",
+          });
+        }}
         onFormCancel={() => {
           setShowForm(false);
           setEditingItem(null);
         }}
-        onEdit={handleEdit}
-        onDelete={handleDelete}
-        onProfileUpdate={handleProfileUpdate}
+        onEdit={(item) => {
+          setEditingItem(item);
+          setShowForm(true);
+        }}
+        onDelete={async (id) => {
+          try {
+            const response = await fetch(`https://menu-backend-56ur.onrender.com/api/menuitems/${id}`, {
+              method: 'DELETE',
+            });
+            
+            if (!response.ok) {
+              throw new Error('Failed to delete item');
+            }
+            
+            refetch();
+            toast({
+              title: "Deleted!",
+              description: "Menu item deleted successfully.",
+            });
+          } catch (error) {
+            toast({
+              title: "Error",
+              description: "Failed to delete menu item.",
+              variant: "destructive",
+            });
+          }
+        }}
       />
     </div>
   );

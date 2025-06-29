@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent } from '@/components/ui/card';
-import { Shuffle, DollarSign, Store, Plus } from 'lucide-react';
+import { Shuffle, DollarSign, Store } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface FilterProps {
@@ -15,10 +15,9 @@ interface FilterProps {
     priceMax?: number;
   }) => void;
   onRandomItem: () => void;
-  onAddRestaurant: () => void;
 }
 
-const AdminMenuFilters = ({ onFilterChange, onRandomItem, onAddRestaurant }: FilterProps) => {
+const AdminMenuFilters = ({ onFilterChange, onRandomItem }: FilterProps) => {
   const [selectedRestaurant, setSelectedRestaurant] = useState<string>('all');
   const [priceMin, setPriceMin] = useState<string>('');
   const [priceMax, setPriceMax] = useState<string>('');
@@ -129,10 +128,6 @@ const AdminMenuFilters = ({ onFilterChange, onRandomItem, onAddRestaurant }: Fil
             <Button onClick={handleRandomItem} variant="outline" className="bg-purple-50 hover:bg-purple-100">
               <Shuffle className="w-4 h-4 mr-2" />
               Surprise Me!
-            </Button>
-            <Button onClick={onAddRestaurant} className="bg-blue-600 hover:bg-blue-700">
-              <Plus className="w-4 h-4 mr-2" />
-              Add Restaurant
             </Button>
           </div>
         </div>

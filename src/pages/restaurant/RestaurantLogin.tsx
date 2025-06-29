@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -14,6 +14,17 @@ const RestaurantLogin = () => {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  // Check for existing restaurant session on component mount
+  useEffect(() => {
+    const restaurantSession = document.cookie
+      .split('; ')
+      .find(row => row.startsWith('restaurant_session='));
+    
+    if (restaurantSession) {
+      navigate('/res-dashboard');
+    }
+  }, [navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -43,6 +54,11 @@ const RestaurantLogin = () => {
 
       const restaurant = await response.json();
       
+      // Set cookie for 24 hours
+      const expires = new Date();
+      expires.setTime(expires.getTime() + (24 * 60 * 60 * 1000));
+      document.cookie = `restaurant_session=${JSON.stringify(restaurant)}; expires=${expires.toUTCString()}; path=/`;
+      
       // Store restaurant data in localStorage for session management
       const restaurantData = {
         id: restaurant.id || restaurant.restaurant?.id,
@@ -57,7 +73,7 @@ const RestaurantLogin = () => {
         description: "Successfully logged in to restaurant dashboard.",
       });
       
-      navigate('/restaurant-dashboard');
+      navigate('/res-dashboard');
     } catch (err) {
       setError('Network error. Please check your connection.');
     } finally {

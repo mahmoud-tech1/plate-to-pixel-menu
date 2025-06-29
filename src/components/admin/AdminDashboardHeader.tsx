@@ -1,14 +1,15 @@
 
 import { Button } from '@/components/ui/button';
-import { LogOut, Plus, ChefHat, Shield } from 'lucide-react';
+import { LogOut, Plus, ChefHat, Shield, Building } from 'lucide-react';
 
 interface AdminDashboardHeaderProps {
   onAddItem: () => void;
+  onAddRestaurant: () => void;
   onLogout: () => void;
   onViewRestaurants: () => void;
 }
 
-const AdminDashboardHeader = ({ onAddItem, onLogout, onViewRestaurants }: AdminDashboardHeaderProps) => {
+const AdminDashboardHeader = ({ onAddItem, onAddRestaurant, onLogout, onViewRestaurants }: AdminDashboardHeaderProps) => {
   return (
     <header className="bg-white shadow-sm border-b">
       <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
@@ -20,6 +21,13 @@ const AdminDashboardHeader = ({ onAddItem, onLogout, onViewRestaurants }: AdminD
           </div>
         </div>
         <div className="flex items-center space-x-4">
+          <Button
+            onClick={onAddRestaurant}
+            className="bg-blue-600 hover:bg-blue-700"
+          >
+            <Building className="w-4 h-4 mr-2" />
+            Add New Restaurant
+          </Button>
           <Button
             onClick={onViewRestaurants}
             variant="outline"

@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
+import { Upload, X } from 'lucide-react';
 
 interface AddRestaurantFormProps {
   onSuccess: () => void;
@@ -13,13 +14,47 @@ interface AddRestaurantFormProps {
 const AddRestaurantForm = ({ onSuccess, onCancel }: AddRestaurantFormProps) => {
   const [formData, setFormData] = useState({
     name: '',
+    username: '',
+    password: '123',
     address: '',
     phone: '',
     email: '',
     description: '',
   });
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isUploadingLogo, setIsUploadingLogo] = useState(false);
   const { toast } = useToast();
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setLogoFile(file);
+      const reader = new FileReader();
+      reader.onload = () => {
+        setLogoPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const uploadImage = async (file: File): Promise<string> => {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const response = await fetch('https://menu-backend-56ur.onrender.com/upload', {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to upload image');
+    }
+
+    const data = await response.json();
+    return data.url;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,15 +68,44 @@ const AddRestaurantForm = ({ onSuccess, onCancel }: AddRestaurantFormProps) => {
       return;
     }
 
+    if (!formData.username.trim()) {
+      toast({
+        title: "Validation Error",
+        description: "Username is required.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
+      let logoUrl = '';
+      
+      // Upload logo if provided
+      if (logoFile) {
+        setIsUploadingLogo(true);
+        logoUrl = await uploadImage(logoFile);
+        setIsUploadingLogo(false);
+      }
+
       const response = await fetch('https://menu-backend-56ur.onrender.com/api/restaurants', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          name: formData.name,
+          username: formData.username,
+          PASSWORD: formData.password,
+          logo: logoUrl,
+          status: 'active',
+          created_by: formData.username,
+          address: formData.address,
+          phone: formData.phone,
+          email: formData.email,
+          description: formData.description,
+        }),
       });
 
       if (!response.ok) {
@@ -63,6 +127,7 @@ const AddRestaurantForm = ({ onSuccess, onCancel }: AddRestaurantFormProps) => {
       });
     } finally {
       setIsSubmitting(false);
+      setIsUploadingLogo(false);
     }
   };
 
@@ -78,6 +143,70 @@ const AddRestaurantForm = ({ onSuccess, onCancel }: AddRestaurantFormProps) => {
           placeholder="Enter restaurant name"
           required
         />
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Username *
+          </label>
+          <Input
+            value={formData.username}
+            onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+            placeholder="Enter username for login"
+            required
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Password
+          </label>
+          <Input
+            value={formData.password}
+            onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+            placeholder="Default: 123"
+          />
+        </div>
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          Logo
+        </label>
+        <div className="border-2 border-dashed border-gray-300 rounded-lg p-4">
+          {logoPreview ? (
+            <div className="flex items-center space-x-4">
+              <img src={logoPreview} alt="Logo preview" className="w-16 h-16 object-cover rounded" />
+              <div className="flex-1">
+                <p className="text-sm text-gray-600">Logo selected</p>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setLogoFile(null);
+                    setLogoPreview(null);
+                  }}
+                >
+                  <X className="w-4 h-4 mr-1" />
+                  Remove
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <div className="text-center">
+              <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+              <p className="text-sm text-gray-600 mb-2">Upload restaurant logo</p>
+              <Input
+                type="file"
+                accept="image/*"
+                onChange={handleFileChange}
+                className="max-w-xs mx-auto"
+              />
+            </div>
+          )}
+        </div>
       </div>
 
       <div>
@@ -134,10 +263,10 @@ const AddRestaurantForm = ({ onSuccess, onCancel }: AddRestaurantFormProps) => {
         </Button>
         <Button
           type="submit"
-          disabled={isSubmitting}
+          disabled={isSubmitting || isUploadingLogo}
           className="bg-emerald-600 hover:bg-emerald-700"
         >
-          {isSubmitting ? 'Creating...' : 'Create Restaurant'}
+          {isUploadingLogo ? 'Uploading Logo...' : isSubmitting ? 'Creating...' : 'Create Restaurant'}
         </Button>
       </div>
     </form>

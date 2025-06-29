@@ -15,6 +15,7 @@ interface FilterState {
 
 interface AdminDashboardMainProps {
   showForm: boolean;
+  showRestaurantForm: boolean;
   editingItem: MenuItem | null;
   filters: FilterState;
   randomItemId: number | null;
@@ -24,6 +25,8 @@ interface AdminDashboardMainProps {
   onRandomItem: () => void;
   onFormSuccess: () => void;
   onFormCancel: () => void;
+  onRestaurantFormSuccess: () => void;
+  onRestaurantFormCancel: () => void;
   onEdit: (item: MenuItem) => void;
   onDelete: (id: number) => Promise<void>;
   onRefetch: () => void;
@@ -31,6 +34,7 @@ interface AdminDashboardMainProps {
 
 const AdminDashboardMain = ({
   showForm,
+  showRestaurantForm,
   editingItem,
   filters,
   randomItemId,
@@ -40,11 +44,12 @@ const AdminDashboardMain = ({
   onRandomItem,
   onFormSuccess,
   onFormCancel,
+  onRestaurantFormSuccess,
+  onRestaurantFormCancel,
   onEdit,
   onDelete,
   onRefetch,
 }: AdminDashboardMainProps) => {
-  const [showRestaurantForm, setShowRestaurantForm] = useState(false);
   const { toast } = useToast();
 
   // Filter menu items based on current filters
@@ -86,30 +91,12 @@ const AdminDashboardMain = ({
     }
   };
 
-  const handleAddRestaurant = () => {
-    setShowRestaurantForm(true);
-  };
-
-  const handleRestaurantSuccess = () => {
-    setShowRestaurantForm(false);
-    onRefetch();
-    toast({
-      title: "Success!",
-      description: "Restaurant created successfully.",
-    });
-  };
-
-  const handleRestaurantCancel = () => {
-    setShowRestaurantForm(false);
-  };
-
   return (
     <main className="max-w-7xl mx-auto px-4 py-8">
       {!showForm && !showRestaurantForm && (
         <AdminMenuFilters
           onFilterChange={onFilterChange}
           onRandomItem={handleRandomItem}
-          onAddRestaurant={handleAddRestaurant}
         />
       )}
 
@@ -117,8 +104,8 @@ const AdminDashboardMain = ({
         <div className="bg-white rounded-lg shadow-md p-6">
           <h2 className="text-xl font-semibold mb-4">Add New Restaurant</h2>
           <AddRestaurantForm
-            onSuccess={handleRestaurantSuccess}
-            onCancel={handleRestaurantCancel}
+            onSuccess={onRestaurantFormSuccess}
+            onCancel={onRestaurantFormCancel}
           />
         </div>
       ) : showForm ? (

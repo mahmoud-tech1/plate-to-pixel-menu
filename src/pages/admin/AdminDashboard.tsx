@@ -16,6 +16,7 @@ interface FilterState {
 const AdminDashboard = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [showForm, setShowForm] = useState(false);
+  const [showRestaurantForm, setShowRestaurantForm] = useState(false);
   const [editingItem, setEditingItem] = useState<MenuItem | null>(null);
   const [filters, setFilters] = useState<FilterState>({});
   const [randomItemId, setRandomItemId] = useState<number | null>(null);
@@ -24,8 +25,12 @@ const AdminDashboard = () => {
 
   // Check for existing admin session on component mount
   useEffect(() => {
+    const adminSession = document.cookie
+      .split('; ')
+      .find(row => row.startsWith('admin_session='));
     const adminLoggedIn = localStorage.getItem('admin_logged_in');
-    if (adminLoggedIn === 'true') {
+    
+    if (adminSession && adminLoggedIn === 'true') {
       setIsAuthenticated(true);
     } else {
       navigate('/ad-login');
@@ -45,9 +50,12 @@ const AdminDashboard = () => {
   });
 
   const handleLogout = () => {
+    // Clear cookie
+    document.cookie = 'admin_session=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
     localStorage.removeItem('admin_logged_in');
     setIsAuthenticated(false);
     setShowForm(false);
+    setShowRestaurantForm(false);
     setEditingItem(null);
     navigate('/');
   };
@@ -55,6 +63,10 @@ const AdminDashboard = () => {
   const handleAddItem = () => {
     setEditingItem(null);
     setShowForm(true);
+  };
+
+  const handleAddRestaurant = () => {
+    setShowRestaurantForm(true);
   };
 
   const handleFormSuccess = () => {
@@ -70,6 +82,19 @@ const AdminDashboard = () => {
   const handleFormCancel = () => {
     setShowForm(false);
     setEditingItem(null);
+  };
+
+  const handleRestaurantFormSuccess = () => {
+    setShowRestaurantForm(false);
+    refetch();
+    toast({
+      title: "Success!",
+      description: "Restaurant created successfully.",
+    });
+  };
+
+  const handleRestaurantFormCancel = () => {
+    setShowRestaurantForm(false);
   };
 
   const handleEdit = (item: MenuItem) => {
@@ -126,12 +151,14 @@ const AdminDashboard = () => {
     <div className="min-h-screen bg-gray-50">
       <AdminDashboardHeader
         onAddItem={handleAddItem}
+        onAddRestaurant={handleAddRestaurant}
         onLogout={handleLogout}
         onViewRestaurants={handleViewRestaurants}
       />
       
       <AdminDashboardMain
         showForm={showForm}
+        showRestaurantForm={showRestaurantForm}
         editingItem={editingItem}
         filters={filters}
         randomItemId={randomItemId}
@@ -141,6 +168,8 @@ const AdminDashboard = () => {
         onRandomItem={handleRandomItem}
         onFormSuccess={handleFormSuccess}
         onFormCancel={handleFormCancel}
+        onRestaurantFormSuccess={handleRestaurantFormSuccess}
+        onRestaurantFormCancel={handleRestaurantFormCancel}
         onEdit={handleEdit}
         onDelete={handleDelete}
         onRefetch={refetch}
