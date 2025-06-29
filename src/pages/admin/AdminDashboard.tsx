@@ -143,6 +143,7 @@ const AdminDashboard = () => {
         onFormCancel={handleFormCancel}
         onEdit={handleEdit}
         onDelete={handleDelete}
+        onRefetch={refetch}
       />
     </div>
   );
