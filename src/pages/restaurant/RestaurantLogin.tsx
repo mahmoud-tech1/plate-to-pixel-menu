@@ -52,7 +52,16 @@ const RestaurantLogin = () => {
         return;
       }
 
-      const restaurant = await response.json();
+      const data = await response.json();
+      console.log('Login response:', data);
+      
+      // Extract restaurant data from the response
+      const restaurant = data.restaurant;
+      
+      if (!restaurant || !restaurant.id) {
+        setError('Invalid response from server. Please try again.');
+        return;
+      }
       
       // Set cookie for 24 hours
       const expires = new Date();
@@ -60,13 +69,11 @@ const RestaurantLogin = () => {
       document.cookie = `restaurant_session=${JSON.stringify(restaurant)}; expires=${expires.toUTCString()}; path=/`;
       
       // Store restaurant data in localStorage for compatibility
-      const restaurantData = {
-        id: restaurant.id || restaurant.restaurant?.id,
-        ...restaurant
-      };
+      localStorage.setItem('restaurantSession', JSON.stringify(restaurant));
+      localStorage.setItem('restaurantId', restaurant.id.toString());
       
-      localStorage.setItem('restaurantSession', JSON.stringify(restaurantData));
-      localStorage.setItem('restaurantId', restaurantData.id.toString());
+      console.log('Stored restaurant session:', restaurant);
+      console.log('Stored restaurant ID:', restaurant.id);
       
       toast({
         title: "Welcome back!",
