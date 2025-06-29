@@ -59,7 +59,7 @@ const RestaurantLogin = () => {
       expires.setTime(expires.getTime() + (24 * 60 * 60 * 1000));
       document.cookie = `restaurant_session=${JSON.stringify(restaurant)}; expires=${expires.toUTCString()}; path=/`;
       
-      // Store restaurant data in localStorage for session management
+      // Store restaurant data in localStorage for compatibility
       const restaurantData = {
         id: restaurant.id || restaurant.restaurant?.id,
         ...restaurant
@@ -74,7 +74,8 @@ const RestaurantLogin = () => {
       });
       
       navigate('/res-dashboard');
-    } catch (err) {
+    } catch (error) {
+      console.error('Restaurant login error:', error);
       setError('Network error. Please check your connection.');
     } finally {
       setIsLoading(false);

@@ -2,7 +2,6 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { Upload, X } from 'lucide-react';
 
@@ -16,10 +15,6 @@ const AddRestaurantForm = ({ onSuccess, onCancel }: AddRestaurantFormProps) => {
     name: '',
     username: '',
     password: '123',
-    address: '',
-    phone: '',
-    email: '',
-    description: '',
   });
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
@@ -101,10 +96,6 @@ const AddRestaurantForm = ({ onSuccess, onCancel }: AddRestaurantFormProps) => {
           logo: logoUrl,
           status: 'active',
           created_by: formData.username,
-          address: formData.address,
-          phone: formData.phone,
-          email: formData.email,
-          description: formData.description,
         }),
       });
 
@@ -145,29 +136,27 @@ const AddRestaurantForm = ({ onSuccess, onCancel }: AddRestaurantFormProps) => {
         />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Username *
-          </label>
-          <Input
-            value={formData.username}
-            onChange={(e) => setFormData({ ...formData, username: e.target.value })}
-            placeholder="Enter username for login"
-            required
-          />
-        </div>
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          Username *
+        </label>
+        <Input
+          value={formData.username}
+          onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+          placeholder="Enter username for login"
+          required
+        />
+      </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Password
-          </label>
-          <Input
-            value={formData.password}
-            onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-            placeholder="Default: 123"
-          />
-        </div>
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          Password
+        </label>
+        <Input
+          value={formData.password}
+          onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+          placeholder="Default: 123"
+        />
       </div>
 
       <div>
@@ -207,54 +196,6 @@ const AddRestaurantForm = ({ onSuccess, onCancel }: AddRestaurantFormProps) => {
             </div>
           )}
         </div>
-      </div>
-
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          Address
-        </label>
-        <Input
-          value={formData.address}
-          onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-          placeholder="Enter restaurant address"
-        />
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Phone
-          </label>
-          <Input
-            value={formData.phone}
-            onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-            placeholder="Enter phone number"
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Email
-          </label>
-          <Input
-            type="email"
-            value={formData.email}
-            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-            placeholder="Enter email address"
-          />
-        </div>
-      </div>
-
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          Description
-        </label>
-        <Textarea
-          value={formData.description}
-          onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-          placeholder="Enter restaurant description"
-          rows={3}
-        />
       </div>
 
       <div className="flex justify-end space-x-3 pt-4">

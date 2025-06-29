@@ -1,10 +1,32 @@
 
+import { useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Shield, Store } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const Index = () => {
   const navigate = useNavigate();
+
+  useEffect(() => {
+    // Check for existing sessions and redirect accordingly
+    const adminSession = document.cookie
+      .split('; ')
+      .find(row => row.startsWith('admin_session='));
+    
+    const restaurantSession = document.cookie
+      .split('; ')
+      .find(row => row.startsWith('restaurant_session='));
+
+    if (adminSession) {
+      navigate('/ad-dashboard');
+      return;
+    }
+
+    if (restaurantSession) {
+      navigate('/res-dashboard');
+      return;
+    }
+  }, [navigate]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center">

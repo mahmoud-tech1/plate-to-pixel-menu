@@ -28,9 +28,8 @@ const AdminDashboard = () => {
     const adminSession = document.cookie
       .split('; ')
       .find(row => row.startsWith('admin_session='));
-    const adminLoggedIn = localStorage.getItem('admin_logged_in');
     
-    if (adminSession && adminLoggedIn === 'true') {
+    if (adminSession) {
       setIsAuthenticated(true);
     } else {
       navigate('/ad-login');
@@ -50,14 +49,18 @@ const AdminDashboard = () => {
   });
 
   const handleLogout = () => {
-    // Clear cookie
+    // Clear all cookies and session data
     document.cookie = 'admin_session=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+    document.cookie = 'restaurant_session=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
     localStorage.removeItem('admin_logged_in');
+    localStorage.removeItem('restaurantSession');
+    localStorage.removeItem('restaurantId');
+    
     setIsAuthenticated(false);
     setShowForm(false);
     setShowRestaurantForm(false);
     setEditingItem(null);
-    navigate('/');
+    navigate('/ad-login');
   };
 
   const handleAddItem = () => {
