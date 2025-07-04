@@ -40,7 +40,7 @@ const RestaurantDashboard = () => {
     queryKey: ['restaurantMenuItems', restaurantData?.id],
     queryFn: async () => {
       if (!restaurantData?.id) return [];
-      const response = await fetch(`https://menu-backend-56ur.onrender.com/api/menuitems/restaurant/${restaurantData.id}`);
+      const response = await fetch(`https://menu-backend-56ur.onrender.com/api/menuitems/findAllByRestaurant/${restaurantData.id}`);
       if (!response.ok) {
         throw new Error('Failed to fetch menu items');
       }
