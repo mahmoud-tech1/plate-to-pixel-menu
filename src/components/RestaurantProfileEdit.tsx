@@ -1,12 +1,13 @@
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Save, X } from 'lucide-react';
+import { Save, X, Upload, ImageIcon } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 interface Restaurant {
   id: number;
@@ -26,6 +27,11 @@ interface RestaurantProfileEditProps {
 }
 
 const RestaurantProfileEdit = ({ restaurant, isLoading, onSubmit, onCancel }: RestaurantProfileEditProps) => {
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [logoPreview, setLogoPreview] = useState<string>('');
+  const [uploadingLogo, setUploadingLogo] = useState(false);
+  const { toast } = useToast();
+
   const form = useForm({
     defaultValues: {
       name: '',
@@ -49,8 +55,73 @@ const RestaurantProfileEdit = ({ restaurant, isLoading, onSubmit, onCancel }: Re
         logo: restaurant.logo || '',
         status: statusValue,
       });
+      setLogoPreview(restaurant.logo || '');
     }
   }, [restaurant, form]);
+
+  const handleLogoFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      setLogoFile(file);
+      // Create preview
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setLogoPreview(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const uploadLogo = async (): Promise<string | null> => {
+    if (!logoFile) return null;
+
+    setUploadingLogo(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', logoFile);
+
+      const response = await fetch('https://menu-backend-56ur.onrender.com/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to upload logo');
+      }
+
+      const data = await response.json();
+      return data.url || data.imageUrl;
+    } catch (error) {
+      console.error('Error uploading logo:', error);
+      toast({
+        title: "Error",
+        description: "Failed to upload logo. Please try again.",
+        variant: "destructive",
+      });
+      return null;
+    } finally {
+      setUploadingLogo(false);
+    }
+  };
+
+  const handleSubmit = async (data: any) => {
+    let logoUrl = data.logo;
+
+    // Upload new logo if selected
+    if (logoFile) {
+      const uploadedUrl = await uploadLogo();
+      if (uploadedUrl) {
+        logoUrl = uploadedUrl;
+      } else {
+        return; // Don't submit if logo upload failed
+      }
+    }
+
+    onSubmit({
+      ...data,
+      logo: logoUrl,
+    });
+  };
 
   const handleCancel = () => {
     const statusValue = restaurant.status && restaurant.status.trim() !== '' ? restaurant.status : 'active';
@@ -62,6 +133,8 @@ const RestaurantProfileEdit = ({ restaurant, isLoading, onSubmit, onCancel }: Re
       logo: restaurant.logo || '',
       status: statusValue,
     });
+    setLogoFile(null);
+    setLogoPreview(restaurant.logo || '');
     onCancel();
   };
 
@@ -80,7 +153,7 @@ const RestaurantProfileEdit = ({ restaurant, isLoading, onSubmit, onCancel }: Re
       </div>
 
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <FormField
               control={form.control}
@@ -165,23 +238,54 @@ const RestaurantProfileEdit = ({ restaurant, isLoading, onSubmit, onCancel }: Re
             )}
           />
 
-          <FormField
-            control={form.control}
-            name="logo"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Logo URL</FormLabel>
-                <FormControl>
-                  <Input {...field} placeholder="https://example.com/logo.jpg" />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          {/* Logo Upload Section */}
+          <div className="space-y-4">
+            <FormLabel>Restaurant Logo</FormLabel>
+            
+            {/* Logo Preview */}
+            <div className="flex items-center space-x-4">
+              <div className="w-20 h-20 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center overflow-hidden">
+                {logoPreview ? (
+                  <img
+                    src={logoPreview}
+                    alt="Logo preview"
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <ImageIcon className="w-8 h-8 text-gray-400" />
+                )}
+              </div>
+              
+              <div className="flex-1">
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleLogoFileChange}
+                  className="hidden"
+                  id="logo-upload"
+                />
+                <label htmlFor="logo-upload">
+                  <Button type="button" variant="outline" asChild>
+                    <span className="cursor-pointer">
+                      <Upload className="w-4 h-4 mr-2" />
+                      {logoPreview ? 'Change Logo' : 'Upload Logo'}
+                    </span>
+                  </Button>
+                </label>
+                <p className="text-sm text-gray-500 mt-1">
+                  Upload a new logo image (JPG, PNG, GIF)
+                </p>
+              </div>
+            </div>
+          </div>
 
-          <Button type="submit" disabled={isLoading} className="bg-emerald-600 hover:bg-emerald-700">
+          <Button 
+            type="submit" 
+            disabled={isLoading || uploadingLogo} 
+            className="bg-emerald-600 hover:bg-emerald-700"
+          >
             <Save className="w-4 h-4 mr-2" />
-            {isLoading ? 'Saving...' : 'Save Changes'}
+            {isLoading || uploadingLogo ? 'Saving...' : 'Save Changes'}
           </Button>
         </form>
       </Form>

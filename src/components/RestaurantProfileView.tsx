@@ -1,6 +1,6 @@
 
 import { Button } from '@/components/ui/button';
-import { Edit3 } from 'lucide-react';
+import { Edit3, ImageIcon } from 'lucide-react';
 
 interface Restaurant {
   id: number;
@@ -32,6 +32,32 @@ const RestaurantProfileView = ({ restaurant, onEdit }: RestaurantProfileViewProp
         </Button>
       </div>
       
+      {/* Logo Section */}
+      <div className="mb-6">
+        <label className="text-sm font-medium text-gray-600">Restaurant Logo</label>
+        <div className="mt-2 flex items-center space-x-4">
+          <div className="w-20 h-20 border-2 border-gray-200 rounded-lg flex items-center justify-center overflow-hidden">
+            {restaurant.logo ? (
+              <img
+                src={restaurant.logo}
+                alt={`${restaurant.name} logo`}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <div className="flex flex-col items-center">
+                <ImageIcon className="w-8 h-8 text-gray-400" />
+                <span className="text-xs text-gray-500 mt-1">No Logo</span>
+              </div>
+            )}
+          </div>
+          {restaurant.logo && (
+            <div className="flex-1">
+              <p className="text-sm text-gray-500 break-all">{restaurant.logo}</p>
+            </div>
+          )}
+        </div>
+      </div>
+      
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label className="text-sm font-medium text-gray-600">Restaurant Name</label>
@@ -52,15 +78,6 @@ const RestaurantProfileView = ({ restaurant, onEdit }: RestaurantProfileViewProp
         <div className="md:col-span-2">
           <label className="text-sm font-medium text-gray-600">Description</label>
           <p className="text-lg">{restaurant.description || 'Not provided'}</p>
-        </div>
-        <div className="md:col-span-2">
-          <label className="text-sm font-medium text-gray-600">Logo URL</label>
-          <div className="flex items-center space-x-4">
-            <p className="text-lg break-all">{restaurant.logo || 'Not provided'}</p>
-            {restaurant.logo && (
-              <img src={restaurant.logo} alt="Logo" className="w-12 h-12 rounded-full object-cover" />
-            )}
-          </div>
         </div>
       </div>
     </div>

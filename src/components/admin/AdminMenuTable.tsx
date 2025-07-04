@@ -12,6 +12,14 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from '@/components/ui/pagination';
 import { MenuItem } from '../../types/MenuItem';
 import { Edit, Trash2, Save, X, ImageIcon } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -27,6 +35,14 @@ interface AdminMenuTableProps {
 const AdminMenuTable = ({ items, isLoading, onEdit, onDelete, onRefetch }: AdminMenuTableProps) => {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editData, setEditData] = useState<Partial<MenuItem>>({});
+  const [currentPage, setCurrentPage] = useState(() => {
+    const saved = localStorage.getItem('admin-menu-page');
+    return saved ? parseInt(saved) : 1;
+  });
+  const [itemsPerPage, setItemsPerPage] = useState(() => {
+    const saved = localStorage.getItem('admin-menu-per-page');
+    return saved ? parseInt(saved) : 10;
+  });
   const { toast } = useToast();
 
   const { data: restaurants } = useQuery({
@@ -37,6 +53,26 @@ const AdminMenuTable = ({ items, isLoading, onEdit, onDelete, onRefetch }: Admin
       return response.json();
     },
   });
+
+  // Pagination logic
+  const totalItems = items.length;
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedItems = items.slice(startIndex, endIndex);
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    localStorage.setItem('admin-menu-page', page.toString());
+  };
+
+  const handleItemsPerPageChange = (value: string) => {
+    const newItemsPerPage = parseInt(value);
+    setItemsPerPage(newItemsPerPage);
+    setCurrentPage(1);
+    localStorage.setItem('admin-menu-per-page', newItemsPerPage.toString());
+    localStorage.setItem('admin-menu-page', '1');
+  };
 
   const handleEditStart = (item: MenuItem) => {
     setEditingId(item.id);
@@ -110,7 +146,22 @@ const AdminMenuTable = ({ items, isLoading, onEdit, onDelete, onRefetch }: Admin
 
   return (
     <div className="space-y-4">
-      <h2 className="text-xl font-semibold text-gray-900">Menu Items ({items.length})</h2>
+      <div className="flex justify-between items-center">
+        <h2 className="text-xl font-semibold text-gray-900">Menu Items ({totalItems})</h2>
+        <div className="flex items-center space-x-2">
+          <span className="text-sm text-gray-600">Items per page:</span>
+          <Select value={itemsPerPage.toString()} onValueChange={handleItemsPerPageChange}>
+            <SelectTrigger className="w-20">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="10">10</SelectItem>
+              <SelectItem value="20">20</SelectItem>
+              <SelectItem value="50">50</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
       
       <div className="border rounded-lg overflow-hidden">
         <Table>
@@ -127,7 +178,7 @@ const AdminMenuTable = ({ items, isLoading, onEdit, onDelete, onRefetch }: Admin
             </TableRow>
           </TableHeader>
           <TableBody>
-            {items.map((item) => (
+            {paginatedItems.map((item) => (
               <TableRow key={item.id}>
                 <TableCell className="font-medium">{item.id}</TableCell>
                 
@@ -269,6 +320,46 @@ const AdminMenuTable = ({ items, isLoading, onEdit, onDelete, onRefetch }: Admin
             ))}
           </TableBody>
         </Table>
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="p-4 border-t">
+            <div className="flex justify-between items-center">
+              <div className="text-sm text-gray-600">
+                Showing {startIndex + 1}-{Math.min(endIndex, totalItems)} of {totalItems} items
+              </div>
+              <Pagination>
+                <PaginationContent>
+                  <PaginationItem>
+                    <PaginationPrevious 
+                      onClick={() => currentPage > 1 && handlePageChange(currentPage - 1)}
+                      className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                    />
+                  </PaginationItem>
+                  
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                    <PaginationItem key={page}>
+                      <PaginationLink
+                        onClick={() => handlePageChange(page)}
+                        isActive={currentPage === page}
+                        className="cursor-pointer"
+                      >
+                        {page}
+                      </PaginationLink>
+                    </PaginationItem>
+                  ))}
+                  
+                  <PaginationItem>
+                    <PaginationNext 
+                      onClick={() => currentPage < totalPages && handlePageChange(currentPage + 1)}
+                      className={currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                    />
+                  </PaginationItem>
+                </PaginationContent>
+              </Pagination>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

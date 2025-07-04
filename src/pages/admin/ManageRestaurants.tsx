@@ -2,8 +2,15 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
-import { Plus, Edit, Eye, EyeOff } from 'lucide-react';
+import { Plus, Edit, Eye, EyeOff, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import {
   Table,
   TableBody,
@@ -12,6 +19,14 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from '@/components/ui/pagination';
 import CreateRestaurantModal from '@/components/admin/CreateRestaurantModal';
 import EditRestaurantModal from '@/components/admin/EditRestaurantModal';
 
@@ -32,6 +47,14 @@ const ManageRestaurants = () => {
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingRestaurant, setEditingRestaurant] = useState<Restaurant | null>(null);
   const [showPasswords, setShowPasswords] = useState<Record<number, boolean>>({});
+  const [currentPage, setCurrentPage] = useState(() => {
+    const saved = localStorage.getItem('admin-restaurants-page');
+    return saved ? parseInt(saved) : 1;
+  });
+  const [itemsPerPage, setItemsPerPage] = useState(() => {
+    const saved = localStorage.getItem('admin-restaurants-per-page');
+    return saved ? parseInt(saved) : 10;
+  });
   const { toast } = useToast();
 
   const { data: restaurants, isLoading, refetch } = useQuery({
@@ -44,6 +67,26 @@ const ManageRestaurants = () => {
       return response.json();
     },
   });
+
+  // Pagination logic
+  const totalItems = restaurants?.length || 0;
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedRestaurants = restaurants?.slice(startIndex, endIndex) || [];
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    localStorage.setItem('admin-restaurants-page', page.toString());
+  };
+
+  const handleItemsPerPageChange = (value: string) => {
+    const newItemsPerPage = parseInt(value);
+    setItemsPerPage(newItemsPerPage);
+    setCurrentPage(1);
+    localStorage.setItem('admin-restaurants-per-page', newItemsPerPage.toString());
+    localStorage.setItem('admin-restaurants-page', '1');
+  };
 
   const handleCreateSuccess = () => {
     setShowCreateModal(false);
@@ -98,6 +141,26 @@ const ManageRestaurants = () => {
 
       <main className="max-w-7xl mx-auto px-4 py-8">
         <div className="bg-white rounded-lg shadow-md overflow-hidden">
+          {/* Pagination Controls */}
+          <div className="p-4 border-b flex justify-between items-center">
+            <div className="text-sm text-gray-600">
+              Showing {startIndex + 1}-{Math.min(endIndex, totalItems)} of {totalItems} restaurants
+            </div>
+            <div className="flex items-center space-x-2">
+              <span className="text-sm text-gray-600">Items per page:</span>
+              <Select value={itemsPerPage.toString()} onValueChange={handleItemsPerPageChange}>
+                <SelectTrigger className="w-20">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="10">10</SelectItem>
+                  <SelectItem value="20">20</SelectItem>
+                  <SelectItem value="50">50</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
           {isLoading ? (
             <div className="p-8 text-center">
               <p className="text-gray-500">Loading restaurants...</p>
@@ -119,7 +182,7 @@ const ManageRestaurants = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {restaurants?.map((restaurant: Restaurant) => (
+                {paginatedRestaurants.map((restaurant: Restaurant) => (
                   <TableRow key={restaurant.id}>
                     <TableCell className="font-medium">{restaurant.id}</TableCell>
                     <TableCell>
@@ -181,6 +244,41 @@ const ManageRestaurants = () => {
                 ))}
               </TableBody>
             </Table>
+          )}
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="p-4 border-t">
+              <Pagination>
+                <PaginationContent>
+                  <PaginationItem>
+                    <PaginationPrevious 
+                      onClick={() => currentPage > 1 && handlePageChange(currentPage - 1)}
+                      className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                    />
+                  </PaginationItem>
+                  
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                    <PaginationItem key={page}>
+                      <PaginationLink
+                        onClick={() => handlePageChange(page)}
+                        isActive={currentPage === page}
+                        className="cursor-pointer"
+                      >
+                        {page}
+                      </PaginationLink>
+                    </PaginationItem>
+                  ))}
+                  
+                  <PaginationItem>
+                    <PaginationNext 
+                      onClick={() => currentPage < totalPages && handlePageChange(currentPage + 1)}
+                      className={currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                    />
+                  </PaginationItem>
+                </PaginationContent>
+              </Pagination>
+            </div>
           )}
         </div>
       </main>
