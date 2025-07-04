@@ -1,6 +1,7 @@
 
 import { Button } from '@/components/ui/button';
 import { LogOut, Plus, ChefHat, Shield, Building } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 interface AdminDashboardHeaderProps {
   onAddItem: () => void;
@@ -10,6 +11,12 @@ interface AdminDashboardHeaderProps {
 }
 
 const AdminDashboardHeader = ({ onAddItem, onAddRestaurant, onLogout, onViewRestaurants }: AdminDashboardHeaderProps) => {
+  const navigate = useNavigate();
+
+  const handleManageRestaurants = () => {
+    navigate('/ad-dashboard/manage-restaurants');
+  };
+
   return (
     <header className="bg-white shadow-sm border-b">
       <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
@@ -21,6 +28,13 @@ const AdminDashboardHeader = ({ onAddItem, onAddRestaurant, onLogout, onViewRest
           </div>
         </div>
         <div className="flex items-center space-x-4">
+          <Button
+            onClick={handleManageRestaurants}
+            className="bg-purple-600 hover:bg-purple-700"
+          >
+            <Building className="w-4 h-4 mr-2" />
+            Manage Restaurants
+          </Button>
           <Button
             onClick={onAddRestaurant}
             className="bg-blue-600 hover:bg-blue-700"

@@ -1,0 +1,302 @@
+
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { X } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+
+interface Restaurant {
+  id: number;
+  name: string;
+  username: string;
+  PASSWORD: string;
+  logo: string;
+  status: string;
+  description: string;
+  rating: string;
+  created_by: string;
+}
+
+interface EditRestaurantModalProps {
+  restaurant: Restaurant;
+  onClose: () => void;
+  onSuccess: () => void;
+}
+
+const EditRestaurantModal = ({ restaurant, onClose, onSuccess }: EditRestaurantModalProps) => {
+  const [formData, setFormData] = useState({
+    name: restaurant.name || '',
+    username: restaurant.username || '',
+    PASSWORD: restaurant.PASSWORD || '',
+    description: restaurant.description || '',
+    logo: restaurant.logo || '',
+    status: restaurant.status || 'active',
+    rating: restaurant.rating || '0'
+  });
+  const [isLoading, setIsLoading] = useState(false);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const { toast } = useToast();
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const maxSize = 3 * 1024 * 1024;
+    if (file.size > maxSize) {
+      toast({
+        title: "Image size too large",
+        description: "Image size cannot exceed 3MB.",
+        variant: "destructive",
+      });
+      e.target.value = '';
+      return;
+    }
+
+    setIsUploadingImage(true);
+
+    try {
+      const formDataUpload = new FormData();
+      formDataUpload.append('image', file);
+
+      const response = await fetch('https://menu-backend-56ur.onrender.com/api/upload/upload-image', {
+        method: 'POST',
+        body: formDataUpload,
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to upload image');
+      }
+
+      const data = await response.json();
+      
+      setFormData(prev => ({ ...prev, logo: data.imageUrl }));
+      
+      toast({
+        title: "Logo uploaded",
+        description: "Logo uploaded successfully!",
+      });
+    } catch (error) {
+      console.error('Error uploading logo:', error);
+      toast({
+        title: "Upload failed",
+        description: "Failed to upload logo. Please try again.",
+        variant: "destructive",
+      });
+      e.target.value = '';
+    } finally {
+      setIsUploadingImage(false);
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!formData.name.trim() || !formData.username.trim() || !formData.PASSWORD.trim()) {
+      toast({
+        title: "Validation Error",
+        description: "Please fill in all required fields (name, username, password).",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      const response = await fetch(`https://menu-backend-56ur.onrender.com/api/restaurants/${restaurant.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: formData.name,
+          username: formData.username,
+          PASSWORD: formData.PASSWORD,
+          description: formData.description,
+          logo: formData.logo,
+          status: formData.status,
+          rating: formData.rating,
+          created_by: 'admin'
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update restaurant');
+      }
+
+      onSuccess();
+    } catch (error) {
+      console.error('Error updating restaurant:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update restaurant. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleInputChange = (field: string, value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <Card className="w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle>Edit Restaurant</CardTitle>
+            <Button variant="ghost" size="sm" onClick={onClose}>
+              <X className="w-4 h-4" />
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
+                  Restaurant Name *
+                </Label>
+                <Input
+                  id="name"
+                  type="text"
+                  value={formData.name}
+                  onChange={(e) => handleInputChange('name', e.target.value)}
+                  placeholder="Enter restaurant name"
+                  required
+                  disabled={isLoading}
+                />
+              </div>
+              
+              <div>
+                <Label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-1">
+                  Username *
+                </Label>
+                <Input
+                  id="username"
+                  type="text"
+                  value={formData.username}
+                  onChange={(e) => handleInputChange('username', e.target.value)}
+                  placeholder="Enter username"
+                  required
+                  disabled={isLoading}
+                />
+              </div>
+            </div>
+            
+            <div>
+              <Label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+                Password *
+              </Label>
+              <Input
+                id="password"
+                type="password"
+                value={formData.PASSWORD}
+                onChange={(e) => handleInputChange('PASSWORD', e.target.value)}
+                placeholder="Enter password"
+                required
+                disabled={isLoading}
+              />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="status" className="block text-sm font-medium text-gray-700 mb-1">
+                  Status
+                </Label>
+                <Select value={formData.status} onValueChange={(value) => handleInputChange('status', value)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="active">Active</SelectItem>
+                    <SelectItem value="inactive">Inactive</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label htmlFor="rating" className="block text-sm font-medium text-gray-700 mb-1">
+                  Rating
+                </Label>
+                <Input
+                  id="rating"
+                  type="number"
+                  step="0.1"
+                  min="0"
+                  max="5"
+                  value={formData.rating}
+                  onChange={(e) => handleInputChange('rating', e.target.value)}
+                  placeholder="Enter rating (0-5)"
+                  disabled={isLoading}
+                />
+              </div>
+            </div>
+            
+            <div>
+              <Label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
+                Description
+              </Label>
+              <Textarea
+                id="description"
+                value={formData.description}
+                onChange={(e) => handleInputChange('description', e.target.value)}
+                placeholder="Enter restaurant description"
+                rows={3}
+                disabled={isLoading}
+              />
+            </div>
+            
+            <div>
+              <Label className="block text-sm font-medium text-gray-700 mb-1">
+                Restaurant Logo
+              </Label>
+              <div className="space-y-2">
+                <Input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                  disabled={isUploadingImage || isLoading}
+                  className="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100"
+                />
+                {isUploadingImage && (
+                  <p className="text-sm text-gray-600">Uploading logo...</p>
+                )}
+                {formData.logo && (
+                  <div className="flex items-center space-x-2">
+                    <img src={formData.logo} alt="Logo preview" className="w-12 h-12 rounded object-cover" />
+                    <p className="text-sm text-gray-600">Current logo</p>
+                  </div>
+                )}
+              </div>
+            </div>
+            
+            <div className="flex justify-end space-x-3 pt-4">
+              <Button type="button" variant="outline" onClick={onClose} disabled={isLoading}>
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                disabled={isLoading || isUploadingImage}
+                className="bg-emerald-600 hover:bg-emerald-700"
+              >
+                {isLoading ? 'Updating...' : 'Update Restaurant'}
+              </Button>
+            </div>
+          </form>
+        </CardContent>
+      </Card>
+    </div>
+  );
+};
+
+export default EditRestaurantModal;
