@@ -1,4 +1,3 @@
-
 import { useMemo, useState } from 'react';
 import AdminMenuFilters from './AdminMenuFilters';
 import MenuItemForm from '../MenuItemForm';
@@ -101,13 +100,10 @@ const AdminDashboardMain = ({
       )}
 
       {showRestaurantForm ? (
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <h2 className="text-xl font-semibold mb-4">Add New Restaurant</h2>
-          <AddRestaurantForm
-            onSuccess={onRestaurantFormSuccess}
-            onCancel={onRestaurantFormCancel}
-          />
-        </div>
+        <AddRestaurantForm
+          onClose={onRestaurantFormCancel}
+          onSuccess={onRestaurantFormSuccess}
+        />
       ) : showForm ? (
         <div className="bg-white rounded-lg shadow-md p-6">
           <h2 className="text-xl font-semibold mb-4">
