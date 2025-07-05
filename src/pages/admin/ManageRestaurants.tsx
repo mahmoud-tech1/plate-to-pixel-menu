@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
@@ -48,14 +47,26 @@ const ManageRestaurants = () => {
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingRestaurant, setEditingRestaurant] = useState<Restaurant | null>(null);
   const [showPasswords, setShowPasswords] = useState<Record<number, boolean>>({});
+  
+  // Initialize pagination state properly to avoid TDZ issues
   const [currentPage, setCurrentPage] = useState(() => {
-    const saved = localStorage.getItem('admin-restaurants-page');
-    return saved ? parseInt(saved) : 1;
+    try {
+      const saved = localStorage.getItem('admin-restaurants-page');
+      return saved ? parseInt(saved, 10) : 1;
+    } catch {
+      return 1;
+    }
   });
+  
   const [itemsPerPage, setItemsPerPage] = useState(() => {
-    const saved = localStorage.getItem('admin-restaurants-per-page');
-    return saved ? parseInt(saved) : 10;
+    try {
+      const saved = localStorage.getItem('admin-restaurants-per-page');
+      return saved ? parseInt(saved, 10) : 10;
+    } catch {
+      return 10;
+    }
   });
+  
   const [statusFilter, setStatusFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const { toast } = useToast();
@@ -71,7 +82,7 @@ const ManageRestaurants = () => {
     },
   });
 
-  // Filter restaurants based on status and search query
+  // Ensure filteredRestaurants is properly initialized
   const filteredRestaurants = restaurants?.filter((restaurant: Restaurant) => {
     const statusMatch = statusFilter === 'all' || restaurant.status === statusFilter;
     const searchMatch = searchQuery === '' || 
@@ -79,24 +90,36 @@ const ManageRestaurants = () => {
     return statusMatch && searchMatch;
   }) || [];
 
-  // Pagination logic
+  // Calculate pagination values safely
   const totalItems = filteredRestaurants.length;
-  const totalPages = Math.ceil(totalItems / itemsPerPage);
+  const totalPages = Math.max(1, Math.ceil(totalItems / itemsPerPage));
   const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
+  const endIndex = Math.min(startIndex + itemsPerPage, totalItems);
   const paginatedRestaurants = filteredRestaurants.slice(startIndex, endIndex);
 
   const handlePageChange = (page: number) => {
-    setCurrentPage(page);
-    localStorage.setItem('admin-restaurants-page', page.toString());
+    if (page >= 1 && page <= totalPages) {
+      setCurrentPage(page);
+      try {
+        localStorage.setItem('admin-restaurants-page', page.toString());
+      } catch {
+        // Ignore localStorage errors
+      }
+    }
   };
 
   const handleItemsPerPageChange = (value: string) => {
-    const newItemsPerPage = parseInt(value);
-    setItemsPerPage(newItemsPerPage);
-    setCurrentPage(1);
-    localStorage.setItem('admin-restaurants-per-page', newItemsPerPage.toString());
-    localStorage.setItem('admin-restaurants-page', '1');
+    const newItemsPerPage = parseInt(value, 10);
+    if (newItemsPerPage > 0) {
+      setItemsPerPage(newItemsPerPage);
+      setCurrentPage(1);
+      try {
+        localStorage.setItem('admin-restaurants-per-page', newItemsPerPage.toString());
+        localStorage.setItem('admin-restaurants-page', '1');
+      } catch {
+        // Ignore localStorage errors
+      }
+    }
   };
 
   const handleCreateSuccess = () => {
@@ -187,7 +210,7 @@ const ManageRestaurants = () => {
           {/* Pagination Controls */}
           <div className="p-4 border-b flex justify-between items-center">
             <div className="text-sm text-gray-600">
-              Showing {startIndex + 1}-{Math.min(endIndex, totalItems)} of {totalItems} restaurants
+              Showing {Math.min(startIndex + 1, totalItems)}-{endIndex} of {totalItems} restaurants
             </div>
             <div className="flex items-center space-x-2">
               <span className="text-sm text-gray-600">Items per page:</span>
