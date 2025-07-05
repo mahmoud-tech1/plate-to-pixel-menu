@@ -2,7 +2,8 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
-import { Plus, Edit, Eye, EyeOff, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Plus, Edit, Eye, EyeOff, Search } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import {
   Select,
@@ -55,6 +56,8 @@ const ManageRestaurants = () => {
     const saved = localStorage.getItem('admin-restaurants-per-page');
     return saved ? parseInt(saved) : 10;
   });
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [searchQuery, setSearchQuery] = useState('');
   const { toast } = useToast();
 
   const { data: restaurants, isLoading, refetch } = useQuery({
@@ -68,12 +71,20 @@ const ManageRestaurants = () => {
     },
   });
 
+  // Filter restaurants based on status and search query
+  const filteredRestaurants = restaurants?.filter((restaurant: Restaurant) => {
+    const statusMatch = statusFilter === 'all' || restaurant.status === statusFilter;
+    const searchMatch = searchQuery === '' || 
+      restaurant.name.toLowerCase().includes(searchQuery.toLowerCase());
+    return statusMatch && searchMatch;
+  }) || [];
+
   // Pagination logic
-  const totalItems = restaurants?.length || 0;
+  const totalItems = filteredRestaurants.length;
   const totalPages = Math.ceil(totalItems / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
-  const paginatedRestaurants = restaurants?.slice(startIndex, endIndex) || [];
+  const paginatedRestaurants = filteredRestaurants.slice(startIndex, endIndex);
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
@@ -141,6 +152,38 @@ const ManageRestaurants = () => {
 
       <main className="max-w-7xl mx-auto px-4 py-8">
         <div className="bg-white rounded-lg shadow-md overflow-hidden">
+          {/* Filters and Search */}
+          <div className="p-4 border-b space-y-4">
+            <div className="flex flex-wrap gap-4 items-end">
+              <div className="flex-1 min-w-[200px]">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <Search className="w-4 h-4 inline mr-1" />
+                  Search by Restaurant Name
+                </label>
+                <Input
+                  placeholder="Search restaurants..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+              </div>
+              <div className="min-w-[120px]">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Filter by Status
+                </label>
+                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All</SelectItem>
+                    <SelectItem value="active">Active</SelectItem>
+                    <SelectItem value="inactive">Inactive</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </div>
+
           {/* Pagination Controls */}
           <div className="p-4 border-b flex justify-between items-center">
             <div className="text-sm text-gray-600">

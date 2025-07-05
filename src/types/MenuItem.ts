@@ -9,4 +9,5 @@ export interface MenuItem {
   created_by: string;
   updated_by: string;
   restaurantId?: number;
+  status?: string;
 }

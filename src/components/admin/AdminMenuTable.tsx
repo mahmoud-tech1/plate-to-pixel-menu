@@ -21,7 +21,7 @@ import {
   PaginationPrevious,
 } from '@/components/ui/pagination';
 import { MenuItem } from '../../types/MenuItem';
-import { Edit, Trash2, Save, X, ImageIcon } from 'lucide-react';
+import { Edit, Trash2, Save, X, ImageIcon, Search } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface AdminMenuTableProps {
@@ -43,6 +43,8 @@ const AdminMenuTable = ({ items, isLoading, onEdit, onDelete, onRefetch }: Admin
     const saved = localStorage.getItem('admin-menu-per-page');
     return saved ? parseInt(saved) : 10;
   });
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [searchQuery, setSearchQuery] = useState('');
   const { toast } = useToast();
 
   const { data: restaurants } = useQuery({
@@ -54,12 +56,22 @@ const AdminMenuTable = ({ items, isLoading, onEdit, onDelete, onRefetch }: Admin
     },
   });
 
+  // Filter items based on status and search query
+  const filteredItems = items.filter(item => {
+    const statusMatch = statusFilter === 'all' || item.status === statusFilter;
+    const restaurantName = getRestaurantName(item.restaurantId).toLowerCase();
+    const searchMatch = searchQuery === '' || 
+      item.item_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      restaurantName.includes(searchQuery.toLowerCase());
+    return statusMatch && searchMatch;
+  });
+
   // Pagination logic
-  const totalItems = items.length;
+  const totalItems = filteredItems.length;
   const totalPages = Math.ceil(totalItems / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
-  const paginatedItems = items.slice(startIndex, endIndex);
+  const paginatedItems = filteredItems.slice(startIndex, endIndex);
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
@@ -122,6 +134,39 @@ const AdminMenuTable = ({ items, isLoading, onEdit, onDelete, onRefetch }: Admin
     }
   };
 
+  const handleStatusChange = async (itemId: number, newStatus: string) => {
+    try {
+      const response = await fetch(`https://menu-backend-56ur.onrender.com/api/menuitems/${itemId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          status: newStatus,
+          updated_by: 'admin',
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update status');
+      }
+
+      toast({
+        title: "Success!",
+        description: `Item status updated to ${newStatus}.`,
+      });
+
+      onRefetch();
+    } catch (error) {
+      console.error('Error updating status:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update item status.",
+        variant: "destructive",
+      });
+    }
+  };
+
   const getRestaurantName = (restaurantId?: number) => {
     const restaurant = restaurants?.find((r: any) => r.id === restaurantId);
     return restaurant?.name || 'Unknown';
@@ -146,6 +191,38 @@ const AdminMenuTable = ({ items, isLoading, onEdit, onDelete, onRefetch }: Admin
 
   return (
     <div className="space-y-4">
+      {/* Filters and Search */}
+      <div className="bg-white p-4 rounded-lg border space-y-4">
+        <div className="flex flex-wrap gap-4 items-end">
+          <div className="flex-1 min-w-[200px]">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              <Search className="w-4 h-4 inline mr-1" />
+              Search by Item or Restaurant Name
+            </label>
+            <Input
+              placeholder="Search items or restaurants..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
+          <div className="min-w-[120px]">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Filter by Status
+            </label>
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All</SelectItem>
+                <SelectItem value="active">Active</SelectItem>
+                <SelectItem value="inactive">Inactive</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+      </div>
+
       <div className="flex justify-between items-center">
         <h2 className="text-xl font-semibold text-gray-900">Menu Items ({totalItems})</h2>
         <div className="flex items-center space-x-2">
@@ -174,6 +251,7 @@ const AdminMenuTable = ({ items, isLoading, onEdit, onDelete, onRefetch }: Admin
               <TableHead>Restaurant</TableHead>
               <TableHead>Photo</TableHead>
               <TableHead>Description</TableHead>
+              <TableHead>Status</TableHead>
               <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -283,6 +361,36 @@ const AdminMenuTable = ({ items, isLoading, onEdit, onDelete, onRefetch }: Admin
                     <span className="truncate max-w-32 block" title={item.description}>
                       {item.description || 'No description'}
                     </span>
+                  )}
+                </TableCell>
+
+                <TableCell>
+                  {editingId === item.id ? (
+                    <Select
+                      value={editData.status || 'active'}
+                      onValueChange={(value) => setEditData({ ...editData, status: value })}
+                    >
+                      <SelectTrigger className="w-24">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="active">Active</SelectItem>
+                        <SelectItem value="inactive">Inactive</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  ) : (
+                    <Select
+                      value={item.status || 'active'}
+                      onValueChange={(value) => handleStatusChange(item.id, value)}
+                    >
+                      <SelectTrigger className="w-24">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="active">Active</SelectItem>
+                        <SelectItem value="inactive">Inactive</SelectItem>
+                      </SelectContent>
+                    </Select>
                   )}
                 </TableCell>
 
