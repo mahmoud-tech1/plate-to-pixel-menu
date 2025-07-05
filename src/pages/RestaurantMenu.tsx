@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
@@ -35,13 +34,19 @@ const RestaurantMenu = () => {
   // Find the restaurant by username
   const restaurant = restaurants?.find((r: Restaurant) => r.username === restaurantName);
 
-  // Fetch menu items for this restaurant
+  // Fetch menu items for this restaurant with proper error handling
   const { data: menuItems, isLoading, error } = useQuery({
     queryKey: ['restaurantMenuItems', restaurant?.id],
     queryFn: async () => {
       if (!restaurant?.id) return [];
       const response = await fetch(`https://menu-backend-56ur.onrender.com/api/menuitems/findAllByRestaurant/${restaurant.id}`);
-      if (!response.ok) throw new Error('Failed to fetch menu items');
+      
+      if (!response.ok) {
+        const error = new Error('Failed to fetch menu items');
+        (error as any).status = response.status;
+        throw error;
+      }
+      
       return response.json();
     },
     enabled: !!restaurant?.id,
@@ -120,13 +125,29 @@ const RestaurantMenu = () => {
     return <LoadingScreen />;
   }
 
+  // Handle specific error cases
   if (error) {
+    const errorStatus = (error as any).status;
+    let errorTitle = "Oops! Something went wrong";
+    let errorMessage = "Please try again later";
+
+    if (errorStatus === 403) {
+      errorTitle = "Restaurant Inactive";
+      errorMessage = "This restaurant is currently inactive. If you are the owner, please contact support.";
+    } else if (errorStatus === 404) {
+      errorTitle = "Restaurant Not Found";
+      errorMessage = "Restaurant not found. Please check the link or contact support.";
+    } else {
+      errorTitle = "Unexpected Error";
+      errorMessage = "An unexpected error occurred. Please try again later.";
+    }
+
     return (
       <div className={backgroundClass}>
         <div className="flex items-center justify-center h-screen">
           <div className="text-center">
-            <h2 className="text-2xl font-bold text-red-600 mb-2 playful-font">Oops! Something went wrong</h2>
-            <p className="text-gray-600 playful-font">Please try again later</p>
+            <h2 className="text-2xl font-bold text-red-600 mb-2 playful-font">{errorTitle}</h2>
+            <p className="text-gray-600 playful-font">{errorMessage}</p>
           </div>
         </div>
       </div>
