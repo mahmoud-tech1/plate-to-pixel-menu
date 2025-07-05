@@ -45,25 +45,8 @@ const AdminMenuTable: React.FC<AdminMenuTableProps> = ({
   onDelete,
   onRefetch
 }) => {
-  // Initialize pagination state safely to avoid TDZ issues
-  const [currentPage, setCurrentPage] = useState(() => {
-    try {
-      const saved = localStorage.getItem('admin-menu-page');
-      return saved ? parseInt(saved, 10) : 1;
-    } catch {
-      return 1;
-    }
-  });
-  
-  const [itemsPerPage, setItemsPerPage] = useState(() => {
-    try {
-      const saved = localStorage.getItem('admin-menu-per-page');
-      return saved ? parseInt(saved, 10) : 10;
-    } catch {
-      return 10;
-    }
-  });
-  
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
   const [statusFilter, setStatusFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const { toast } = useToast();
@@ -92,14 +75,17 @@ const AdminMenuTable: React.FC<AdminMenuTableProps> = ({
     return lookup;
   }, [restaurants]);
 
-  // Filter menu items safely
+  // Filter menu items - simplified to avoid filtering out data unnecessarily
   const filteredMenuItems = React.useMemo(() => {
     if (!Array.isArray(menuItems)) return [];
     
     return menuItems.filter((item: MenuItem) => {
       if (!item) return false;
       
-      const statusMatch = statusFilter === 'all' || (item.status || 'active') === statusFilter;
+      // Only filter by status if it exists and is not 'all'
+      const statusMatch = statusFilter === 'all' || !item.status || item.status === statusFilter;
+      
+      // Search by restaurant name
       const searchMatch = searchQuery === '' || 
         (item.restaurantId && restaurantLookup[item.restaurantId] && 
          restaurantLookup[item.restaurantId].toLowerCase().includes(searchQuery.toLowerCase()));
@@ -118,11 +104,6 @@ const AdminMenuTable: React.FC<AdminMenuTableProps> = ({
   const handlePageChange = (page: number) => {
     if (page >= 1 && page <= totalPages) {
       setCurrentPage(page);
-      try {
-        localStorage.setItem('admin-menu-page', page.toString());
-      } catch {
-        // Ignore localStorage errors
-      }
     }
   };
 
@@ -131,12 +112,6 @@ const AdminMenuTable: React.FC<AdminMenuTableProps> = ({
     if (newItemsPerPage > 0) {
       setItemsPerPage(newItemsPerPage);
       setCurrentPage(1);
-      try {
-        localStorage.setItem('admin-menu-per-page', newItemsPerPage.toString());
-        localStorage.setItem('admin-menu-page', '1');
-      } catch {
-        // Ignore localStorage errors
-      }
     }
   };
 
@@ -276,7 +251,7 @@ const AdminMenuTable: React.FC<AdminMenuTableProps> = ({
                 <TableCell>
                   <Select
                     value={item.status || 'active'}
-                    onValuechange={(value) => handleStatusChange(item.id, value)}
+                    onValueChange={(value) => handleStatusChange(item.id, value)}
                   >
                     <SelectTrigger className="w-24">
                       <SelectValue />

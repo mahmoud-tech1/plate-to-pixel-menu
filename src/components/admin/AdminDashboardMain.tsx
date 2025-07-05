@@ -1,3 +1,4 @@
+
 import { useMemo, useState } from 'react';
 import AdminMenuFilters from './AdminMenuFilters';
 import MenuItemForm from '../MenuItemForm';
@@ -118,7 +119,7 @@ const AdminDashboardMain = ({
         </div>
       ) : (
         <AdminMenuTable
-          items={filteredItems}
+          menuItems={filteredItems}
           isLoading={isLoading}
           onEdit={onEdit}
           onDelete={onDelete}
