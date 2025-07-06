@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Edit, Trash2, Search } from 'lucide-react';
+import { Edit, Trash2, Search, Menu } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import {
   Select,
@@ -28,6 +28,13 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from '@/components/ui/pagination';
+import {
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+} from '@/components/ui/drawer';
 import { MenuItem } from '@/types/MenuItem';
 
 interface AdminMenuTableProps {
@@ -49,6 +56,7 @@ const AdminMenuTable: React.FC<AdminMenuTableProps> = ({
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [statusFilter, setStatusFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const { toast } = useToast();
 
   const { data: restaurants } = useQuery({
@@ -62,7 +70,6 @@ const AdminMenuTable: React.FC<AdminMenuTableProps> = ({
     },
   });
 
-  // Create restaurant lookup safely
   const restaurantLookup = React.useMemo(() => {
     const lookup: Record<number, string> = {};
     if (restaurants && Array.isArray(restaurants)) {
@@ -75,17 +82,14 @@ const AdminMenuTable: React.FC<AdminMenuTableProps> = ({
     return lookup;
   }, [restaurants]);
 
-  // Filter menu items - simplified to avoid filtering out data unnecessarily
   const filteredMenuItems = React.useMemo(() => {
     if (!Array.isArray(menuItems)) return [];
     
     return menuItems.filter((item: MenuItem) => {
       if (!item) return false;
       
-      // Only filter by status if it exists and is not 'all'
       const statusMatch = statusFilter === 'all' || !item.status || item.status === statusFilter;
       
-      // Search by restaurant name
       const searchMatch = searchQuery === '' || 
         (item.restaurantId && restaurantLookup[item.restaurantId] && 
          restaurantLookup[item.restaurantId].toLowerCase().includes(searchQuery.toLowerCase()));
@@ -94,7 +98,6 @@ const AdminMenuTable: React.FC<AdminMenuTableProps> = ({
     });
   }, [menuItems, statusFilter, searchQuery, restaurantLookup]);
 
-  // Calculate pagination values safely
   const totalItems = filteredMenuItems.length;
   const totalPages = Math.max(1, Math.ceil(totalItems / itemsPerPage));
   const startIndex = (currentPage - 1) * itemsPerPage;
@@ -153,42 +156,68 @@ const AdminMenuTable: React.FC<AdminMenuTableProps> = ({
     }
   };
 
+  const FilterControls = () => (
+    <div className="space-y-4">
+      <div className="grid grid-cols-1 gap-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            <Search className="w-4 h-4 inline mr-1" />
+            Search by Restaurant Name
+          </label>
+          <Input
+            placeholder="Search by restaurant name..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Filter by Status
+          </label>
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All</SelectItem>
+              <SelectItem value="active">Active</SelectItem>
+              <SelectItem value="inactive">Inactive</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+    </div>
+  );
+
   return (
     <div className="bg-white rounded-lg shadow-md overflow-hidden">
-      {/* Filters and Search */}
-      <div className="p-4 border-b space-y-4">
-        <div className="flex flex-wrap gap-4 items-end">
-          <div className="flex-1 min-w-[200px]">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              <Search className="w-4 h-4 inline mr-1" />
-              Search by Restaurant Name
-            </label>
-            <Input
-              placeholder="Search by restaurant name..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-          </div>
-          <div className="min-w-[120px]">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Filter by Status
-            </label>
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All</SelectItem>
-                <SelectItem value="active">Active</SelectItem>
-                <SelectItem value="inactive">Inactive</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
+      {/* Desktop Filters */}
+      <div className="hidden md:block p-4 border-b">
+        <FilterControls />
+      </div>
+
+      {/* Mobile Filters */}
+      <div className="md:hidden p-4 border-b">
+        <Drawer open={mobileFiltersOpen} onOpenChange={setMobileFiltersOpen}>
+          <DrawerTrigger asChild>
+            <Button variant="outline" className="w-full">
+              <Menu className="w-4 h-4 mr-2" />
+              Filters & Search
+            </Button>
+          </DrawerTrigger>
+          <DrawerContent>
+            <DrawerHeader>
+              <DrawerTitle>Filters & Search</DrawerTitle>
+            </DrawerHeader>
+            <div className="p-4">
+              <FilterControls />
+            </div>
+          </DrawerContent>
+        </Drawer>
       </div>
 
       {/* Pagination Controls */}
-      <div className="p-4 border-b flex justify-between items-center">
+      <div className="p-4 border-b flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div className="text-sm text-gray-600">
           Showing {Math.min(startIndex + 1, totalItems)}-{endIndex} of {totalItems} items
         </div>
@@ -212,88 +241,91 @@ const AdminMenuTable: React.FC<AdminMenuTableProps> = ({
           <p className="text-gray-500">Loading menu items...</p>
         </div>
       ) : (
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>ID</TableHead>
-              <TableHead>Image</TableHead>
-              <TableHead>Name</TableHead>
-              <TableHead>Restaurant</TableHead>
-              <TableHead>Price</TableHead>
-              <TableHead>Category</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {paginatedItems.map((item: MenuItem) => (
-              <TableRow key={item.id}>
-                <TableCell className="font-medium">{item.id}</TableCell>
-                <TableCell>
-                  {item.photo ? (
-                    <img
-                      src={item.photo}
-                      alt={item.item_name}
-                      className="w-12 h-12 rounded object-cover"
-                    />
-                  ) : (
-                    <div className="w-12 h-12 rounded bg-gray-200 flex items-center justify-center">
-                      <span className="text-gray-500 text-xs">No Image</span>
-                    </div>
-                  )}
-                </TableCell>
-                <TableCell className="font-medium">{item.item_name}</TableCell>
-                <TableCell>
-                  {item.restaurantId ? restaurantLookup[item.restaurantId] || `Restaurant ${item.restaurantId}` : 'Unknown'}
-                </TableCell>
-                <TableCell>${item.price.toFixed(2)}</TableCell>
-                <TableCell>{item.category}</TableCell>
-                <TableCell>
-                  <Select
-                    value={item.status || 'active'}
-                    onValueChange={(value) => handleStatusChange(item.id, value)}
-                  >
-                    <SelectTrigger className="w-24">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="active">Active</SelectItem>
-                      <SelectItem value="inactive">Inactive</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </TableCell>
-                <TableCell>
-                  <div className="flex space-x-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => onEdit(item)}
-                    >
-                      <Edit className="w-4 h-4 mr-1" />
-                      Edit
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleDelete(item.id)}
-                      className="text-red-600 hover:text-red-700"
-                    >
-                      <Trash2 className="w-4 h-4 mr-1" />
-                      Delete
-                    </Button>
-                  </div>
-                </TableCell>
+        <div className="overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="min-w-[60px]">ID</TableHead>
+                <TableHead className="min-w-[80px]">Image</TableHead>
+                <TableHead className="min-w-[150px]">Name</TableHead>
+                <TableHead className="min-w-[120px]">Restaurant</TableHead>
+                <TableHead className="min-w-[80px]">Price</TableHead>
+                <TableHead className="min-w-[100px]">Category</TableHead>
+                <TableHead className="min-w-[100px]">Status</TableHead>
+                <TableHead className="min-w-[150px]">Actions</TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+            </TableHeader>
+            <TableBody>
+              {paginatedItems.map((item: MenuItem) => (
+                <TableRow key={item.id}>
+                  <TableCell className="font-medium">{item.id}</TableCell>
+                  <TableCell>
+                    {item.photo ? (
+                      <img
+                        src={item.photo}
+                        alt={item.item_name}
+                        className="w-10 h-10 sm:w-12 sm:h-12 rounded object-cover"
+                      />
+                    ) : (
+                      <div className="w-10 h-10 sm:w-12 sm:h-12 rounded bg-gray-200 flex items-center justify-center">
+                        <span className="text-gray-500 text-xs">No Image</span>
+                      </div>
+                    )}
+                  </TableCell>
+                  <TableCell className="font-medium">{item.item_name}</TableCell>
+                  <TableCell>
+                    {item.restaurantId ? restaurantLookup[item.restaurantId] || `Restaurant ${item.restaurantId}` : 'Unknown'}
+                  </TableCell>
+                  <TableCell>${item.price.toFixed(2)}</TableCell>
+                  <TableCell>{item.category}</TableCell>
+                  <TableCell>
+                    <Select
+                      value={item.status || 'active'}
+                      onValueChange={(value) => handleStatusChange(item.id, value)}
+                    >
+                      <SelectTrigger className="w-20 sm:w-24">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="active">Active</SelectItem>
+                        <SelectItem value="inactive">Inactive</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex flex-col sm:flex-row gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => onEdit(item)}
+                        className="w-full sm:w-auto"
+                      >
+                        <Edit className="w-4 h-4 mr-1" />
+                        <span className="hidden sm:inline">Edit</span>
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleDelete(item.id)}
+                        className="text-red-600 hover:text-red-700 w-full sm:w-auto"
+                      >
+                        <Trash2 className="w-4 h-4 mr-1" />
+                        <span className="hidden sm:inline">Delete</span>
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
       )}
 
       {/* Pagination */}
       {totalPages > 1 && (
         <div className="p-4 border-t">
           <Pagination>
-            <PaginationContent>
+            <PaginationContent className="flex-wrap justify-center">
               <PaginationItem>
                 <PaginationPrevious 
                   onClick={() => currentPage > 1 && handlePageChange(currentPage - 1)}
@@ -301,17 +333,20 @@ const AdminMenuTable: React.FC<AdminMenuTableProps> = ({
                 />
               </PaginationItem>
               
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                <PaginationItem key={page}>
-                  <PaginationLink
-                    onClick={() => handlePageChange(page)}
-                    isActive={currentPage === page}
-                    className="cursor-pointer"
-                  >
-                    {page}
-                  </PaginationLink>
-                </PaginationItem>
-              ))}
+              {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                const page = i + 1;
+                return (
+                  <PaginationItem key={page}>
+                    <PaginationLink
+                      onClick={() => handlePageChange(page)}
+                      isActive={currentPage === page}
+                      className="cursor-pointer"
+                    >
+                      {page}
+                    </PaginationLink>
+                  </PaginationItem>
+                );
+              })}
               
               <PaginationItem>
                 <PaginationNext 

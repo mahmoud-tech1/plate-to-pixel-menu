@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent } from '@/components/ui/card';
-import { Shuffle, DollarSign, Store } from 'lucide-react';
+import { Shuffle, DollarSign, Store, Search } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface FilterProps {
@@ -13,6 +13,7 @@ interface FilterProps {
     restaurant?: string;
     priceMin?: number;
     priceMax?: number;
+    itemName?: string;
   }) => void;
   onRandomItem: () => void;
 }
@@ -21,6 +22,7 @@ const AdminMenuFilters = ({ onFilterChange, onRandomItem }: FilterProps) => {
   const [selectedRestaurant, setSelectedRestaurant] = useState<string>('all');
   const [priceMin, setPriceMin] = useState<string>('');
   const [priceMax, setPriceMax] = useState<string>('');
+  const [itemName, setItemName] = useState<string>('');
   const { toast } = useToast();
 
   const { data: restaurants } = useQuery({
@@ -39,6 +41,10 @@ const AdminMenuFilters = ({ onFilterChange, onRandomItem }: FilterProps) => {
       filters.restaurant = selectedRestaurant;
     }
     
+    if (itemName.trim()) {
+      filters.itemName = itemName.trim();
+    }
+    
     if (priceMin) {
       filters.priceMin = parseFloat(priceMin);
     }
@@ -52,6 +58,7 @@ const AdminMenuFilters = ({ onFilterChange, onRandomItem }: FilterProps) => {
 
   const clearFilters = () => {
     setSelectedRestaurant('all');
+    setItemName('');
     setPriceMin('');
     setPriceMax('');
     onFilterChange({});
@@ -67,9 +74,22 @@ const AdminMenuFilters = ({ onFilterChange, onRandomItem }: FilterProps) => {
 
   return (
     <Card className="mb-6">
-      <CardContent className="p-6">
-        <div className="flex flex-wrap items-end gap-4">
-          <div className="flex-1 min-w-[200px]">
+      <CardContent className="p-4 sm:p-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              <Search className="w-4 h-4 inline mr-1" />
+              Search by Item Name
+            </label>
+            <Input
+              type="text"
+              placeholder="Search items..."
+              value={itemName}
+              onChange={(e) => setItemName(e.target.value)}
+            />
+          </div>
+
+          <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               <Store className="w-4 h-4 inline mr-1" />
               Filter by Restaurant
@@ -89,7 +109,7 @@ const AdminMenuFilters = ({ onFilterChange, onRandomItem }: FilterProps) => {
             </Select>
           </div>
 
-          <div className="flex-1 min-w-[120px]">
+          <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               <DollarSign className="w-4 h-4 inline mr-1" />
               Min Price
@@ -104,7 +124,7 @@ const AdminMenuFilters = ({ onFilterChange, onRandomItem }: FilterProps) => {
             />
           </div>
 
-          <div className="flex-1 min-w-[120px]">
+          <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Max Price
             </label>
@@ -117,19 +137,19 @@ const AdminMenuFilters = ({ onFilterChange, onRandomItem }: FilterProps) => {
               step="0.01"
             />
           </div>
+        </div>
 
-          <div className="flex gap-2 flex-wrap">
-            <Button onClick={handleFilterChange} className="bg-emerald-600 hover:bg-emerald-700">
-              Apply Filters
-            </Button>
-            <Button onClick={clearFilters} variant="outline">
-              Clear
-            </Button>
-            <Button onClick={handleRandomItem} variant="outline" className="bg-purple-50 hover:bg-purple-100">
-              <Shuffle className="w-4 h-4 mr-2" />
-              Surprise Me!
-            </Button>
-          </div>
+        <div className="flex flex-col sm:flex-row gap-2">
+          <Button onClick={handleFilterChange} className="bg-emerald-600 hover:bg-emerald-700 flex-1 sm:flex-none">
+            Apply Filters
+          </Button>
+          <Button onClick={clearFilters} variant="outline" className="flex-1 sm:flex-none">
+            Clear
+          </Button>
+          <Button onClick={handleRandomItem} variant="outline" className="bg-purple-50 hover:bg-purple-100 flex-1 sm:flex-none">
+            <Shuffle className="w-4 h-4 mr-2" />
+            Surprise Me!
+          </Button>
         </div>
       </CardContent>
     </Card>

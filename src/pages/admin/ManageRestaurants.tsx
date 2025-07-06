@@ -1,8 +1,9 @@
+
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Plus, Edit, Eye, EyeOff, Search } from 'lucide-react';
+import { Plus, Edit, Eye, EyeOff, Search, Menu } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import {
   Select,
@@ -27,6 +28,13 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from '@/components/ui/pagination';
+import {
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+} from '@/components/ui/drawer';
 import CreateRestaurantModal from '@/components/admin/CreateRestaurantModal';
 import EditRestaurantModal from '@/components/admin/EditRestaurantModal';
 
@@ -47,26 +55,10 @@ const ManageRestaurants = () => {
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingRestaurant, setEditingRestaurant] = useState<Restaurant | null>(null);
   const [showPasswords, setShowPasswords] = useState<Record<number, boolean>>({});
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   
-  // Initialize pagination state properly to avoid TDZ issues
-  const [currentPage, setCurrentPage] = useState(() => {
-    try {
-      const saved = localStorage.getItem('admin-restaurants-page');
-      return saved ? parseInt(saved, 10) : 1;
-    } catch {
-      return 1;
-    }
-  });
-  
-  const [itemsPerPage, setItemsPerPage] = useState(() => {
-    try {
-      const saved = localStorage.getItem('admin-restaurants-per-page');
-      return saved ? parseInt(saved, 10) : 10;
-    } catch {
-      return 10;
-    }
-  });
-  
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
   const [statusFilter, setStatusFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const { toast } = useToast();
@@ -82,7 +74,6 @@ const ManageRestaurants = () => {
     },
   });
 
-  // Ensure filteredRestaurants is properly initialized
   const filteredRestaurants = restaurants?.filter((restaurant: Restaurant) => {
     const statusMatch = statusFilter === 'all' || restaurant.status === statusFilter;
     const searchMatch = searchQuery === '' || 
@@ -90,7 +81,6 @@ const ManageRestaurants = () => {
     return statusMatch && searchMatch;
   }) || [];
 
-  // Calculate pagination values safely
   const totalItems = filteredRestaurants.length;
   const totalPages = Math.max(1, Math.ceil(totalItems / itemsPerPage));
   const startIndex = (currentPage - 1) * itemsPerPage;
@@ -100,11 +90,6 @@ const ManageRestaurants = () => {
   const handlePageChange = (page: number) => {
     if (page >= 1 && page <= totalPages) {
       setCurrentPage(page);
-      try {
-        localStorage.setItem('admin-restaurants-page', page.toString());
-      } catch {
-        // Ignore localStorage errors
-      }
     }
   };
 
@@ -113,12 +98,6 @@ const ManageRestaurants = () => {
     if (newItemsPerPage > 0) {
       setItemsPerPage(newItemsPerPage);
       setCurrentPage(1);
-      try {
-        localStorage.setItem('admin-restaurants-per-page', newItemsPerPage.toString());
-        localStorage.setItem('admin-restaurants-page', '1');
-      } catch {
-        // Ignore localStorage errors
-      }
     }
   };
 
@@ -153,18 +132,51 @@ const ManageRestaurants = () => {
     }));
   };
 
+  const FilterControls = () => (
+    <div className="space-y-4">
+      <div className="grid grid-cols-1 gap-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            <Search className="w-4 h-4 inline mr-1" />
+            Search by Restaurant Name
+          </label>
+          <Input
+            placeholder="Search restaurants..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Filter by Status
+          </label>
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All</SelectItem>
+              <SelectItem value="active">Active</SelectItem>
+              <SelectItem value="inactive">Inactive</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+    </div>
+  );
+
   return (
     <div className="min-h-screen bg-gray-50">
       <header className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 py-6">
-          <div className="flex justify-between items-center">
+        <div className="max-w-7xl mx-auto px-4 py-4 sm:py-6">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Manage Restaurants</h1>
-              <p className="text-gray-600 mt-1">Create, edit, and manage all restaurants</p>
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Manage Restaurants</h1>
+              <p className="text-gray-600 mt-1 text-sm sm:text-base">Create, edit, and manage all restaurants</p>
             </div>
             <Button
               onClick={() => setShowCreateModal(true)}
-              className="bg-emerald-600 hover:bg-emerald-700"
+              className="bg-emerald-600 hover:bg-emerald-700 w-full sm:w-auto"
             >
               <Plus className="w-4 h-4 mr-2" />
               Create Restaurant
@@ -173,42 +185,35 @@ const ManageRestaurants = () => {
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 py-8">
+      <main className="max-w-7xl mx-auto px-2 sm:px-4 py-4 sm:py-8">
         <div className="bg-white rounded-lg shadow-md overflow-hidden">
-          {/* Filters and Search */}
-          <div className="p-4 border-b space-y-4">
-            <div className="flex flex-wrap gap-4 items-end">
-              <div className="flex-1 min-w-[200px]">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  <Search className="w-4 h-4 inline mr-1" />
-                  Search by Restaurant Name
-                </label>
-                <Input
-                  placeholder="Search restaurants..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
-              </div>
-              <div className="min-w-[120px]">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Filter by Status
-                </label>
-                <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All</SelectItem>
-                    <SelectItem value="active">Active</SelectItem>
-                    <SelectItem value="inactive">Inactive</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
+          {/* Desktop Filters */}
+          <div className="hidden md:block p-4 border-b">
+            <FilterControls />
+          </div>
+
+          {/* Mobile Filters */}
+          <div className="md:hidden p-4 border-b">
+            <Drawer open={mobileFiltersOpen} onOpenChange={setMobileFiltersOpen}>
+              <DrawerTrigger asChild>
+                <Button variant="outline" className="w-full">
+                  <Menu className="w-4 h-4 mr-2" />
+                  Filters & Search
+                </Button>
+              </DrawerTrigger>
+              <DrawerContent>
+                <DrawerHeader>
+                  <DrawerTitle>Filters & Search</DrawerTitle>
+                </DrawerHeader>
+                <div className="p-4">
+                  <FilterControls />
+                </div>
+              </DrawerContent>
+            </Drawer>
           </div>
 
           {/* Pagination Controls */}
-          <div className="p-4 border-b flex justify-between items-center">
+          <div className="p-4 border-b flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div className="text-sm text-gray-600">
               Showing {Math.min(startIndex + 1, totalItems)}-{endIndex} of {totalItems} restaurants
             </div>
@@ -232,91 +237,94 @@ const ManageRestaurants = () => {
               <p className="text-gray-500">Loading restaurants...</p>
             </div>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>ID</TableHead>
-                  <TableHead>Logo</TableHead>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Username</TableHead>
-                  <TableHead>Password</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Rating</TableHead>
-                  <TableHead>Description</TableHead>
-                  <TableHead>Created By</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {paginatedRestaurants.map((restaurant: Restaurant) => (
-                  <TableRow key={restaurant.id}>
-                    <TableCell className="font-medium">{restaurant.id}</TableCell>
-                    <TableCell>
-                      {restaurant.logo ? (
-                        <img
-                          src={restaurant.logo}
-                          alt={restaurant.name}
-                          className="w-10 h-10 rounded-full object-cover"
-                        />
-                      ) : (
-                        <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center">
-                          <span className="text-gray-500 text-xs">No Logo</span>
-                        </div>
-                      )}
-                    </TableCell>
-                    <TableCell className="font-medium">{restaurant.name}</TableCell>
-                    <TableCell>{restaurant.username}</TableCell>
-                    <TableCell>
-                      <div className="flex items-center space-x-2">
-                        <span className="font-mono">
-                          {showPasswords[restaurant.id] ? restaurant.PASSWORD : '••••••••'}
-                        </span>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => togglePasswordVisibility(restaurant.id)}
-                        >
-                          {showPasswords[restaurant.id] ? (
-                            <EyeOff className="w-4 h-4" />
-                          ) : (
-                            <Eye className="w-4 h-4" />
-                          )}
-                        </Button>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                        restaurant.status === 'active' 
-                          ? 'bg-green-100 text-green-800' 
-                          : 'bg-red-100 text-red-800'
-                      }`}>
-                        {restaurant.status}
-                      </span>
-                    </TableCell>
-                    <TableCell>{restaurant.rating || 'N/A'}</TableCell>
-                    <TableCell className="max-w-xs truncate">{restaurant.description}</TableCell>
-                    <TableCell>{restaurant.created_by}</TableCell>
-                    <TableCell>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleEdit(restaurant)}
-                      >
-                        <Edit className="w-4 h-4 mr-1" />
-                        Edit
-                      </Button>
-                    </TableCell>
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="min-w-[60px]">ID</TableHead>
+                    <TableHead className="min-w-[60px]">Logo</TableHead>
+                    <TableHead className="min-w-[120px]">Name</TableHead>
+                    <TableHead className="min-w-[100px]">Username</TableHead>
+                    <TableHead className="min-w-[120px]">Password</TableHead>
+                    <TableHead className="min-w-[80px]">Status</TableHead>
+                    <TableHead className="min-w-[80px]">Rating</TableHead>
+                    <TableHead className="min-w-[150px]">Description</TableHead>
+                    <TableHead className="min-w-[100px]">Created By</TableHead>
+                    <TableHead className="min-w-[100px]">Actions</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {paginatedRestaurants.map((restaurant: Restaurant) => (
+                    <TableRow key={restaurant.id}>
+                      <TableCell className="font-medium">{restaurant.id}</TableCell>
+                      <TableCell>
+                        {restaurant.logo ? (
+                          <img
+                            src={restaurant.logo}
+                            alt={restaurant.name}
+                            className="w-8 h-8 sm:w-10 sm:h-10 rounded-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gray-200 flex items-center justify-center">
+                            <span className="text-gray-500 text-xs">No Logo</span>
+                          </div>
+                        )}
+                      </TableCell>
+                      <TableCell className="font-medium">{restaurant.name}</TableCell>
+                      <TableCell>{restaurant.username}</TableCell>
+                      <TableCell>
+                        <div className="flex items-center space-x-2">
+                          <span className="font-mono text-sm">
+                            {showPasswords[restaurant.id] ? restaurant.PASSWORD : '••••••••'}
+                          </span>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => togglePasswordVisibility(restaurant.id)}
+                          >
+                            {showPasswords[restaurant.id] ? (
+                              <EyeOff className="w-4 h-4" />
+                            ) : (
+                              <Eye className="w-4 h-4" />
+                            )}
+                          </Button>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                          restaurant.status === 'active' 
+                            ? 'bg-green-100 text-green-800' 
+                            : 'bg-red-100 text-red-800'
+                        }`}>
+                          {restaurant.status}
+                        </span>
+                      </TableCell>
+                      <TableCell>{restaurant.rating || 'N/A'}</TableCell>
+                      <TableCell className="max-w-xs truncate">{restaurant.description}</TableCell>
+                      <TableCell>{restaurant.created_by}</TableCell>
+                      <TableCell>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleEdit(restaurant)}
+                          className="w-full sm:w-auto"
+                        >
+                          <Edit className="w-4 h-4 mr-1" />
+                          <span className="hidden sm:inline">Edit</span>
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
           )}
 
           {/* Pagination */}
           {totalPages > 1 && (
             <div className="p-4 border-t">
               <Pagination>
-                <PaginationContent>
+                <PaginationContent className="flex-wrap justify-center">
                   <PaginationItem>
                     <PaginationPrevious 
                       onClick={() => currentPage > 1 && handlePageChange(currentPage - 1)}
@@ -324,17 +332,20 @@ const ManageRestaurants = () => {
                     />
                   </PaginationItem>
                   
-                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                    <PaginationItem key={page}>
-                      <PaginationLink
-                        onClick={() => handlePageChange(page)}
-                        isActive={currentPage === page}
-                        className="cursor-pointer"
-                      >
-                        {page}
-                      </PaginationLink>
-                    </PaginationItem>
-                  ))}
+                  {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                    const page = i + 1;
+                    return (
+                      <PaginationItem key={page}>
+                        <PaginationLink
+                          onClick={() => handlePageChange(page)}
+                          isActive={currentPage === page}
+                          className="cursor-pointer"
+                        >
+                          {page}
+                        </PaginationLink>
+                      </PaginationItem>
+                    );
+                  })}
                   
                   <PaginationItem>
                     <PaginationNext 

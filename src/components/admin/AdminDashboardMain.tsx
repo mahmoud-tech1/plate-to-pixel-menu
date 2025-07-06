@@ -6,11 +6,21 @@ import AdminMenuTable from './AdminMenuTable';
 import AddRestaurantForm from './AddRestaurantForm';
 import { MenuItem } from '../../types/MenuItem';
 import { useToast } from '@/hooks/use-toast';
+import { Button } from '@/components/ui/button';
+import { Menu } from 'lucide-react';
+import {
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+} from '@/components/ui/drawer';
 
 interface FilterState {
   restaurant?: string;
   priceMin?: number;
   priceMax?: number;
+  itemName?: string;
 }
 
 interface AdminDashboardMainProps {
@@ -51,6 +61,7 @@ const AdminDashboardMain = ({
   onRefetch,
 }: AdminDashboardMainProps) => {
   const { toast } = useToast();
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
 
   // Filter menu items based on current filters
   const filteredItems = useMemo(() => {
@@ -60,6 +71,12 @@ const AdminDashboardMain = ({
     
     if (filters.restaurant) {
       filtered = filtered.filter(item => item.restaurantId?.toString() === filters.restaurant);
+    }
+    
+    if (filters.itemName) {
+      filtered = filtered.filter(item => 
+        item.item_name.toLowerCase().includes(filters.itemName!.toLowerCase())
+      );
     }
     
     if (filters.priceMin !== undefined) {
@@ -92,22 +109,58 @@ const AdminDashboardMain = ({
   };
 
   return (
-    <main className="max-w-7xl mx-auto px-4 py-8">
+    <main className="max-w-7xl mx-auto px-2 sm:px-4 py-4 sm:py-8">
       {!showForm && !showRestaurantForm && (
-        <AdminMenuFilters
-          onFilterChange={onFilterChange}
-          onRandomItem={handleRandomItem}
-        />
+        <>
+          {/* Desktop Filters */}
+          <div className="hidden md:block">
+            <AdminMenuFilters
+              onFilterChange={onFilterChange}
+              onRandomItem={handleRandomItem}
+            />
+          </div>
+
+          {/* Mobile Filters Drawer */}
+          <div className="md:hidden mb-4">
+            <Drawer open={mobileFiltersOpen} onOpenChange={setMobileFiltersOpen}>
+              <DrawerTrigger asChild>
+                <Button variant="outline" className="w-full">
+                  <Menu className="w-4 h-4 mr-2" />
+                  Filters & Search
+                </Button>
+              </DrawerTrigger>
+              <DrawerContent>
+                <DrawerHeader>
+                  <DrawerTitle>Filters & Search</DrawerTitle>
+                </DrawerHeader>
+                <div className="p-4">
+                  <AdminMenuFilters
+                    onFilterChange={(filters) => {
+                      onFilterChange(filters);
+                      setMobileFiltersOpen(false);
+                    }}
+                    onRandomItem={() => {
+                      handleRandomItem();
+                      setMobileFiltersOpen(false);
+                    }}
+                  />
+                </div>
+              </DrawerContent>
+            </Drawer>
+          </div>
+        </>
       )}
 
       {showRestaurantForm ? (
-        <AddRestaurantForm
-          onClose={onRestaurantFormCancel}
-          onSuccess={onRestaurantFormSuccess}
-        />
+        <div className="bg-white rounded-lg shadow-md p-4 sm:p-6">
+          <AddRestaurantForm
+            onClose={onRestaurantFormCancel}
+            onSuccess={onRestaurantFormSuccess}
+          />
+        </div>
       ) : showForm ? (
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <h2 className="text-xl font-semibold mb-4">
+        <div className="bg-white rounded-lg shadow-md p-4 sm:p-6">
+          <h2 className="text-lg sm:text-xl font-semibold mb-4">
             {editingItem ? 'Edit Menu Item' : 'Add New Menu Item'}
           </h2>
           <MenuItemForm
