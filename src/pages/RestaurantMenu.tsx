@@ -25,7 +25,7 @@ const RestaurantMenu = () => {
   const { data: restaurants } = useQuery({
     queryKey: ['restaurants'],
     queryFn: async () => {
-      const response = await fetch('https://menu-backend-56ur.onrender.com/api/restaurants/');
+      const response = await fetch('https://menu-back.up.railway.app/api/restaurants/');
       if (!response.ok) throw new Error('Failed to fetch restaurants');
       return response.json();
     },
@@ -39,7 +39,7 @@ const RestaurantMenu = () => {
     queryKey: ['restaurantMenuItems', restaurant?.id],
     queryFn: async () => {
       if (!restaurant?.id) return [];
-      const response = await fetch(`https://menu-backend-56ur.onrender.com/api/menuitems/findAllByRestaurant/${restaurant.id}`);
+      const response = await fetch(`https://menu-back.up.railway.app/api/menuitems/findAllByRestaurant/${restaurant.id}`);
       
       if (!response.ok) {
         const error = new Error('Failed to fetch menu items');

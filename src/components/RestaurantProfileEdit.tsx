@@ -80,7 +80,7 @@ const RestaurantProfileEdit = ({ restaurant, isLoading, onSubmit, onCancel }: Re
       const formData = new FormData();
       formData.append('file', logoFile);
 
-      const response = await fetch('https://menu-backend-56ur.onrender.com/upload', {
+      const response = await fetch('https://menu-back.up.railway.app/upload', {
         method: 'POST',
         body: formData,
       });

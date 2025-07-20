@@ -62,7 +62,7 @@ const AdminMenuTable: React.FC<AdminMenuTableProps> = ({
   const { data: restaurants } = useQuery({
     queryKey: ['restaurants'],
     queryFn: async () => {
-      const response = await fetch('https://menu-backend-56ur.onrender.com/api/restaurants');
+      const response = await fetch('https://menu-back.up.railway.app/api/restaurants');
       if (!response.ok) {
         throw new Error('Failed to fetch restaurants');
       }
@@ -120,7 +120,7 @@ const AdminMenuTable: React.FC<AdminMenuTableProps> = ({
 
   const handleStatusChange = async (itemId: number, newStatus: string) => {
     try {
-      const response = await fetch(`https://menu-backend-56ur.onrender.com/api/menuitems/${itemId}`, {
+      const response = await fetch(`https://menu-back.up.railway.app/api/menuitems/${itemId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

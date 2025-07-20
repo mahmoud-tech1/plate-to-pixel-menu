@@ -24,7 +24,7 @@ export const useRestaurantProfile = (restaurant: Restaurant, onUpdate: (updatedR
     queryKey: ['restaurant', restaurantId],
     queryFn: async () => {
       console.log('Fetching restaurant details for ID:', restaurantId);
-      const response = await fetch(`https://menu-backend-56ur.onrender.com/api/restaurants/${restaurantId}`);
+      const response = await fetch(`https://menu-back.up.railway.app/api/restaurants/${restaurantId}`);
       if (!response.ok) {
         throw new Error('Failed to fetch restaurant details');
       }
@@ -41,7 +41,7 @@ export const useRestaurantProfile = (restaurant: Restaurant, onUpdate: (updatedR
     setIsLoading(true);
     try {
       console.log('Submitting form data:', data);
-      const response = await fetch(`https://menu-backend-56ur.onrender.com/api/restaurants/${restaurantId}`, {
+      const response = await fetch(`https://menu-back.up.railway.app/api/restaurants/${restaurantId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -58,7 +58,7 @@ export const useRestaurantProfile = (restaurant: Restaurant, onUpdate: (updatedR
 
       await refetch();
       
-      const freshData = await fetch(`https://menu-backend-56ur.onrender.com/api/restaurants/${restaurantId}`);
+      const freshData = await fetch(`https://menu-back.up.railway.app/api/restaurants/${restaurantId}`);
       const updatedRestaurant = await freshData.json();
       console.log('Fresh restaurant data after update:', updatedRestaurant);
       

@@ -66,7 +66,7 @@ const ManageRestaurants = () => {
   const { data: restaurants, isLoading, refetch } = useQuery({
     queryKey: ['restaurants'],
     queryFn: async () => {
-      const response = await fetch('https://menu-backend-56ur.onrender.com/api/restaurants');
+      const response = await fetch('https://menu-back.up.railway.app/api/restaurants');
       if (!response.ok) {
         throw new Error('Failed to fetch restaurants');
       }

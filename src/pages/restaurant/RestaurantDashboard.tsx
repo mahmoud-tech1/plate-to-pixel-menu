@@ -40,7 +40,7 @@ const RestaurantDashboard = () => {
     queryKey: ['restaurantMenuItems', restaurantData?.id],
     queryFn: async () => {
       if (!restaurantData?.id) return [];
-      const response = await fetch(`https://menu-backend-56ur.onrender.com/api/menuitems/findAllByRestaurant/${restaurantData.id}`);
+      const response = await fetch(`https://menu-back.up.railway.app/api/menuitems/findAllByRestaurant/${restaurantData.id}`);
       if (!response.ok) {
         throw new Error('Failed to fetch menu items');
       }
@@ -96,7 +96,7 @@ const RestaurantDashboard = () => {
 
   const handleDelete = async (id: number) => {
     try {
-      const response = await fetch(`https://menu-backend-56ur.onrender.com/api/menuitems/${id}`, {
+      const response = await fetch(`https://menu-back.up.railway.app/api/menuitems/${id}`, {
         method: 'DELETE',
       });
       

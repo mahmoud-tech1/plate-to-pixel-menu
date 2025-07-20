@@ -62,7 +62,7 @@ const EditRestaurantModal = ({ restaurant, onClose, onSuccess }: EditRestaurantM
       const formDataUpload = new FormData();
       formDataUpload.append('image', file);
 
-      const response = await fetch('https://menu-backend-56ur.onrender.com/api/upload/upload-image', {
+      const response = await fetch('https://menu-back.up.railway.app/api/upload/upload-image', {
         method: 'POST',
         body: formDataUpload,
       });
@@ -107,7 +107,7 @@ const EditRestaurantModal = ({ restaurant, onClose, onSuccess }: EditRestaurantM
     setIsLoading(true);
 
     try {
-      const response = await fetch(`https://menu-backend-56ur.onrender.com/api/restaurants/${restaurant.id}`, {
+      const response = await fetch(`https://menu-back.up.railway.app/api/restaurants/${restaurant.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

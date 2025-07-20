@@ -32,7 +32,7 @@ const RestaurantLogin = () => {
     setIsLoading(true);
     
     try {
-      const response = await fetch('https://menu-backend-56ur.onrender.com/api/restaurants/login', {
+      const response = await fetch('https://menu-back.up.railway.app/api/restaurants/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

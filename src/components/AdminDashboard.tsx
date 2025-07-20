@@ -35,7 +35,7 @@ const AdminDashboard = ({ onExitAdmin }: AdminDashboardProps) => {
   const { data: menuItems, isLoading, refetch } = useQuery({
     queryKey: ['adminMenuItems'],
     queryFn: async () => {
-      const response = await fetch('https://menu-backend-56ur.onrender.com/api/menuitems');
+      const response = await fetch('https://menu-back.up.railway.app/api/menuitems');
       if (!response.ok) {
         throw new Error('Failed to fetch menu items');
       }
@@ -87,7 +87,7 @@ const AdminDashboard = ({ onExitAdmin }: AdminDashboardProps) => {
 
   const handleDelete = async (id: number) => {
     try {
-      const response = await fetch(`https://menu-backend-56ur.onrender.com/api/menuitems/${id}`, {
+      const response = await fetch(`https://menu-back.up.railway.app/api/menuitems/${id}`, {
         method: 'DELETE',
       });
       

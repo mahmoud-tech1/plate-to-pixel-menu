@@ -48,7 +48,7 @@ const AddRestaurantForm = ({ onClose, onSuccess }: AddRestaurantFormProps) => {
       const formDataUpload = new FormData();
       formDataUpload.append('image', file);
 
-      const response = await fetch('https://menu-backend-56ur.onrender.com/api/upload/upload-image', {
+      const response = await fetch('https://menu-back.up.railway.app/api/upload/upload-image', {
         method: 'POST',
         body: formDataUpload,
       });
@@ -96,7 +96,7 @@ const AddRestaurantForm = ({ onClose, onSuccess }: AddRestaurantFormProps) => {
     setIsLoading(true);
 
     try {
-      const response = await fetch('https://menu-backend-56ur.onrender.com/api/restaurants', {
+      const response = await fetch('https://menu-back.up.railway.app/api/restaurants', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -13,7 +13,7 @@ const CustomerMenu = () => {
   const { data: menuItems, isLoading, error } = useQuery({
     queryKey: ['menuItems'],
     queryFn: async () => {
-      const response = await fetch('https://menu-backend-56ur.onrender.com/api/menuitems');
+      const response = await fetch('https://menu-back.up.railway.app/api/menuitems');
       
       if (!response.ok) {
         const error = new Error('Failed to fetch menu items');
