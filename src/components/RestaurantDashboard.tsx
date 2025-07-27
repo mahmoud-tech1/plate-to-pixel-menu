@@ -109,20 +109,21 @@ const RestaurantDashboard = ({ restaurant, onLogout }: RestaurantDashboardProps)
   return (
     <div className="min-h-screen bg-gray-50">
       <header className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
-          <div className="flex items-center">
-            <div className="flex items-center mr-4">
-              {restaurantData.logo ? (
-                <img src={restaurantData.logo} alt={restaurantData.name} className="w-10 h-10 rounded-full object-cover mr-3" />
-              ) : (
-                <Store className="w-8 h-8 text-emerald-600 mr-3" />
-              )}
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">{restaurantData.name}</h1>
-                <p className="text-sm text-gray-500">Restaurant Dashboard</p>
-              </div>
-            </div>
-          </div>
+         <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
+           <div className="flex items-center">
+             <img src="/ma-menu-logo.png" alt="MA-Menu" className="w-8 h-8 mr-3" />
+             <div className="flex items-center mr-4">
+               {restaurantData.logo ? (
+                 <img src={restaurantData.logo} alt={restaurantData.name} className="w-10 h-10 rounded-full object-cover mr-3" />
+               ) : (
+                 <Store className="w-8 h-8 text-emerald-600 mr-3" />
+               )}
+               <div>
+                 <h1 className="text-2xl font-bold text-gray-900">{restaurantData.name}</h1>
+                 <p className="text-sm text-gray-500">MA-Menu Restaurant Dashboard</p>
+               </div>
+             </div>
+           </div>
           <div className="flex items-center space-x-4">
             <Button
               onClick={() => {

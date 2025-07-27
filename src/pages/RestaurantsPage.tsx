@@ -63,13 +63,13 @@ const RestaurantsPage = () => {
               Back to Menu
             </Button>
             <div className="flex items-center justify-center flex-1">
-              <div className="bg-white/20 backdrop-blur-sm rounded-full p-3 mr-4 float-animation">
-                <ChefHat className="w-10 h-10 text-white" />
-              </div>
+               <div className="bg-white/20 backdrop-blur-sm rounded-full p-3 mr-4 float-animation">
+                 <img src="/ma-menu-logo.png" alt="MA-Menu" className="w-10 h-10" />
+               </div>
               <div className="text-center">
-                <h1 className="text-4xl md:text-5xl font-bold text-white playful-font tracking-tight">
-                  Our Restaurants
-                </h1>
+                 <h1 className="text-4xl md:text-5xl font-bold text-white playful-font tracking-tight">
+                   MA-Menu Restaurants
+                 </h1>
                 <p className="text-white/90 text-lg playful-font mt-2">Choose your favorite place to order from</p>
               </div>
             </div>

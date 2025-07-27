@@ -33,11 +33,11 @@ const AdminLogin = ({ onLogin, onCancel }: AdminLoginProps) => {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 to-slate-800">
       <Card className="w-full max-w-md mx-4">
         <CardHeader className="text-center">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center mx-auto">
-              <Shield className="w-6 h-6 text-emerald-600 mr-2" />
-              <CardTitle className="text-xl">Admin Login</CardTitle>
-            </div>
+           <div className="flex items-center justify-between">
+             <div className="flex items-center mx-auto">
+               <img src="/ma-menu-logo.png" alt="MA-Menu" className="w-8 h-8 mr-2" />
+               <CardTitle className="text-xl">MA-Menu Admin</CardTitle>
+             </div>
             <Button
               variant="ghost"
               size="sm"

@@ -113,14 +113,14 @@ const CustomerMenu = () => {
       {/* Enhanced Header */}
       <header className="bg-gradient-to-r from-orange-500 via-red-500 to-pink-500 shadow-xl">
         <div className="max-w-7xl mx-auto px-4 py-8">
-          <div className="flex items-center justify-center">
-            <div className="bg-white/20 backdrop-blur-sm rounded-full p-3 mr-4 float-animation">
-              <ChefHat className="w-10 h-10 text-white" />
-            </div>
+           <div className="flex items-center justify-center">
+             <div className="bg-white/20 backdrop-blur-sm rounded-full p-3 mr-4 float-animation">
+               <img src="/ma-menu-logo.png" alt="MA-Menu" className="w-10 h-10" />
+             </div>
             <div className="text-center">
-              <h1 className="text-4xl md:text-5xl font-bold text-white playful-font tracking-tight">
-                Our Menu
-              </h1>
+               <h1 className="text-4xl md:text-5xl font-bold text-white playful-font tracking-tight">
+                 MA-Menu
+               </h1>
               <div className="flex items-center justify-center mt-2">
                 <Sparkles className="w-5 h-5 text-yellow-300 mr-2" />
                 <p className="text-white/90 text-lg playful-font">Delicious food, made with love</p>

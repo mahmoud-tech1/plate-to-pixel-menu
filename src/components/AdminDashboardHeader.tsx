@@ -10,8 +10,11 @@ interface AdminDashboardHeaderProps {
 const AdminDashboardHeader = ({ onAddItem, onLogout }: AdminDashboardHeaderProps) => {
   return (
     <header className="bg-white shadow-sm border-b">
-      <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-gray-900">Admin Dashboard</h1>
+       <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
+         <div className="flex items-center space-x-3">
+           <img src="/ma-menu-logo.png" alt="MA-Menu" className="w-8 h-8" />
+           <h1 className="text-2xl font-bold text-gray-900">MA-Menu Admin</h1>
+         </div>
         <div className="flex items-center space-x-4">
           <Button
             onClick={onAddItem}
