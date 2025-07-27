@@ -276,7 +276,7 @@ const AdminMenuTable: React.FC<AdminMenuTableProps> = ({
                   <TableCell>
                     {item.restaurantId ? restaurantLookup[item.restaurantId] || `Restaurant ${item.restaurantId}` : 'Unknown'}
                   </TableCell>
-                  <TableCell>${item.price.toFixed(2)}</TableCell>
+                  <TableCell>{item.price.toLocaleString('en-US')} SP</TableCell>
                   <TableCell>{item.category}</TableCell>
                   <TableCell>
                     <Select

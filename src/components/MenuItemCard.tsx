@@ -55,7 +55,7 @@ const MenuItemCard = ({ item }: MenuItemCardProps) => {
         {/* Price tag with warm colors to match background */}
         <div className="absolute top-3 right-3 bg-gradient-to-r from-orange-500 to-red-500 text-white px-3 py-1 rounded-full shadow-lg transform rotate-3">
           <span className="text-lg font-bold playful-font">
-            ${typeof item.price === 'number' ? item.price.toFixed(2) : item.price}
+            {typeof item.price === 'number' ? item.price.toLocaleString('en-US') : parseFloat(item.price).toLocaleString('en-US')} SP
           </span>
         </div>
       </div>

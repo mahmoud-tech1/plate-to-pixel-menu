@@ -63,7 +63,7 @@ const AdminMenuList = ({ items, isLoading, onEdit, onDelete }: AdminMenuListProp
                   {item.item_name}
                 </h3>
                 <span className="text-lg font-bold text-emerald-600 ml-2">
-                  ${typeof item.price === 'number' ? item.price.toFixed(2) : item.price}
+                  {typeof item.price === 'number' ? item.price.toLocaleString('en-US') : parseFloat(item.price).toLocaleString('en-US')} SP
                 </span>
               </div>
               
