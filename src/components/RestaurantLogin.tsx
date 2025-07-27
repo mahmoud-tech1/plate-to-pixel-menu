@@ -71,10 +71,12 @@ const RestaurantLogin = ({ onLogin, onCancel }: RestaurantLoginProps) => {
       <Card className="w-full max-w-md mx-4">
         <CardHeader className="text-center">
            <div className="flex items-center justify-between">
-             <div className="flex items-center mx-auto">
-               <img src="/ma-menu-logo.png" alt="MA-Menu" className="w-8 h-8 mr-2" />
-               <CardTitle className="text-xl">MA-Menu Restaurant</CardTitle>
-             </div>
+              <div className="flex items-center mx-auto">
+                <div className="bg-gradient-to-r from-orange-200 to-orange-300 rounded-lg p-2 mr-2">
+                  <img src="/assets/logo.png" alt="MA-Menu" className="w-8 h-8" />
+                </div>
+                <CardTitle className="text-xl text-gray-800">MA-Menu Restaurant</CardTitle>
+              </div>
             <Button
               variant="ghost"
               size="sm"

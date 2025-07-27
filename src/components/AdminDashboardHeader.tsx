@@ -11,10 +11,14 @@ const AdminDashboardHeader = ({ onAddItem, onLogout }: AdminDashboardHeaderProps
   return (
     <header className="bg-white shadow-sm border-b">
        <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
-         <div className="flex items-center space-x-3">
-           <img src="/ma-menu-logo.png" alt="MA-Menu" className="w-8 h-8" />
-           <h1 className="text-2xl font-bold text-gray-900">MA-Menu Admin</h1>
-         </div>
+          <div className="flex items-center space-x-3">
+            <a href="/" className="flex items-center">
+              <div className="bg-gradient-to-r from-orange-200 to-orange-300 rounded-lg p-2">
+                <img src="/assets/logo.png" alt="MA-Menu" className="w-8 h-8" />
+              </div>
+            </a>
+            <h1 className="text-2xl font-bold text-gray-900">MA-Menu Admin</h1>
+          </div>
         <div className="flex items-center space-x-4">
           <Button
             onClick={onAddItem}

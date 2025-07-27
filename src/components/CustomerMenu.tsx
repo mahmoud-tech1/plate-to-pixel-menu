@@ -114,9 +114,11 @@ const CustomerMenu = () => {
       <header className="bg-gradient-to-r from-orange-500 via-red-500 to-pink-500 shadow-xl">
         <div className="max-w-7xl mx-auto px-4 py-8">
            <div className="flex items-center justify-center">
-             <div className="bg-white/20 backdrop-blur-sm rounded-full p-3 mr-4 float-animation">
-               <img src="/ma-menu-logo.png" alt="MA-Menu" className="w-10 h-10" />
-             </div>
+              <a href="/" className="block">
+                <div className="bg-gradient-to-r from-orange-200 to-orange-300 rounded-full p-3 mr-4 float-animation">
+                  <img src="/assets/logo.png" alt="MA-Menu" className="w-10 h-10" />
+                </div>
+              </a>
             <div className="text-center">
                <h1 className="text-4xl md:text-5xl font-bold text-white playful-font tracking-tight">
                  MA-Menu

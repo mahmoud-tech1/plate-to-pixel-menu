@@ -32,10 +32,12 @@ const Index = () => {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center">
       <div className="bg-white rounded-lg shadow-lg p-8 max-w-md w-full mx-4">
          <div className="text-center mb-8">
-           <div className="flex items-center justify-center mb-4">
-             <img src="/ma-menu-logo.png" alt="MA-Menu" className="w-12 h-12 mr-3" />
-             <h1 className="text-3xl font-bold text-gray-900">MA-Menu</h1>
-           </div>
+            <div className="flex items-center justify-center mb-4">
+              <div className="bg-gradient-to-r from-orange-200 to-orange-300 rounded-lg p-3 mr-3">
+                <img src="/assets/logo.png" alt="MA-Menu" className="w-12 h-12" />
+              </div>
+              <h1 className="text-3xl font-bold text-gray-900">MA-Menu</h1>
+            </div>
            <p className="text-gray-600">Choose your login type</p>
          </div>
         
