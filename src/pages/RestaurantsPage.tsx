@@ -5,6 +5,7 @@ import LoadingScreen from '../components/LoadingScreen';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ChefHat, Star, Phone, ArrowLeft } from 'lucide-react';
+import { renderSafeHtml } from '@/utils/htmlSanitizer';
 
 interface Restaurant {
   id: number;
@@ -126,9 +127,13 @@ const RestaurantsPage = () => {
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-gray-600 text-sm playful-font line-clamp-3">
-                    {restaurant.description}
-                  </p>
+                  <div className="text-gray-600 text-sm playful-font line-clamp-3 prose prose-sm max-w-none">
+                    {restaurant.description ? (
+                      <div dangerouslySetInnerHTML={renderSafeHtml(restaurant.description)} />
+                    ) : (
+                      <p>No description available</p>
+                    )}
+                  </div>
                   <Button 
                     className="w-full mt-4 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white shadow-lg"
                     onClick={(e) => {

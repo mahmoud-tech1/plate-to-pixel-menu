@@ -2,12 +2,13 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { X } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import RichTextEditor from '@/components/ui/rich-text-editor';
+import { sanitizeHtml } from '@/utils/htmlSanitizer';
 
 interface Restaurant {
   id: number;
@@ -19,6 +20,7 @@ interface Restaurant {
   description: string;
   rating: string;
   created_by: string;
+  phone_number?: string;
 }
 
 interface EditRestaurantModalProps {
@@ -35,7 +37,8 @@ const EditRestaurantModal = ({ restaurant, onClose, onSuccess }: EditRestaurantM
     description: restaurant.description || '',
     logo: restaurant.logo || '',
     status: restaurant.status || 'active',
-    rating: restaurant.rating || '0'
+    rating: restaurant.rating || '0',
+    phone_number: restaurant.phone_number || ''
   });
   const [isLoading, setIsLoading] = useState(false);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
@@ -116,10 +119,11 @@ const EditRestaurantModal = ({ restaurant, onClose, onSuccess }: EditRestaurantM
           name: formData.name,
           username: formData.username,
           PASSWORD: formData.PASSWORD,
-          description: formData.description,
+          description: sanitizeHtml(formData.description),
           logo: formData.logo,
           status: formData.status,
           rating: formData.rating,
+          phone_number: formData.phone_number,
           created_by: 'admin'
         }),
       });
@@ -192,6 +196,20 @@ const EditRestaurantModal = ({ restaurant, onClose, onSuccess }: EditRestaurantM
                 />
               </div>
             </div>
+
+            <div>
+              <Label htmlFor="phone_number" className="block text-sm font-medium text-gray-700 mb-1">
+                Phone Number
+              </Label>
+              <Input
+                id="phone_number"
+                type="text"
+                value={formData.phone_number}
+                onChange={(e) => handleInputChange('phone_number', e.target.value)}
+                placeholder="Enter phone number"
+                disabled={isLoading}
+              />
+            </div>
             
             <div>
               <Label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
@@ -243,15 +261,13 @@ const EditRestaurantModal = ({ restaurant, onClose, onSuccess }: EditRestaurantM
             </div>
             
             <div>
-              <Label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
+              <Label className="block text-sm font-medium text-gray-700 mb-1">
                 Description
               </Label>
-              <Textarea
-                id="description"
+              <RichTextEditor
                 value={formData.description}
-                onChange={(e) => handleInputChange('description', e.target.value)}
-                placeholder="Enter restaurant description"
-                rows={3}
+                onChange={(value) => handleInputChange('description', value)}
+                placeholder="Enter restaurant description with formatting..."
                 disabled={isLoading}
               />
             </div>

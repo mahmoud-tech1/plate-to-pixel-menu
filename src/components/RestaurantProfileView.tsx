@@ -1,6 +1,7 @@
 
 import { Button } from '@/components/ui/button';
 import { Edit3, ImageIcon } from 'lucide-react';
+import { renderSafeHtml } from '@/utils/htmlSanitizer';
 
 interface Restaurant {
   id: number;
@@ -77,7 +78,13 @@ const RestaurantProfileView = ({ restaurant, onEdit }: RestaurantProfileViewProp
         </div>
         <div className="md:col-span-2">
           <label className="text-sm font-medium text-gray-600">Description</label>
-          <p className="text-lg">{restaurant.description || 'Not provided'}</p>
+          <div className="text-lg prose prose-sm max-w-none">
+            {restaurant.description ? (
+              <div dangerouslySetInnerHTML={renderSafeHtml(restaurant.description)} />
+            ) : (
+              <p className="text-gray-500">Not provided</p>
+            )}
+          </div>
         </div>
       </div>
     </div>

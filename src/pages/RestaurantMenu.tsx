@@ -6,6 +6,7 @@ import MenuCategory from '../components/MenuCategory';
 import MobileCategoryNav from '../components/MobileCategoryNav';
 import { MenuItem } from '../types/MenuItem';
 import { ChefHat, Sparkles, MapPin, Phone, Star } from 'lucide-react';
+import { renderSafeHtml } from '@/utils/htmlSanitizer';
 
 interface Restaurant {
   id: number;
@@ -171,7 +172,13 @@ const RestaurantMenu = () => {
               <h1 className="text-4xl md:text-5xl font-bold text-white playful-font tracking-tight mb-2">
                 {restaurant.name}
               </h1>
-              <p className="text-white/90 text-lg playful-font mb-2">{restaurant.description}</p>
+              <div className="text-white/90 text-lg playful-font mb-2 prose prose-lg max-w-none">
+                {restaurant.description ? (
+                  <div dangerouslySetInnerHTML={renderSafeHtml(restaurant.description)} />
+                ) : (
+                  <p>Welcome to our restaurant</p>
+                )}
+              </div>
               <div className="flex items-center justify-center md:justify-start space-x-4 text-white/80">
                 <div className="flex items-center">
                   <Star className="w-4 h-4 text-yellow-300 mr-1" />

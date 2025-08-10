@@ -3,11 +3,12 @@ import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Save, X, Upload, ImageIcon } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import RichTextEditor from '@/components/ui/rich-text-editor';
+import { sanitizeHtml } from '@/utils/htmlSanitizer';
 
 interface Restaurant {
   id: number;
@@ -120,6 +121,7 @@ const RestaurantProfileEdit = ({ restaurant, isLoading, onSubmit, onCancel }: Re
     onSubmit({
       ...data,
       logo: logoUrl,
+      description: sanitizeHtml(data.description),
     });
   };
 
@@ -231,7 +233,11 @@ const RestaurantProfileEdit = ({ restaurant, isLoading, onSubmit, onCancel }: Re
               <FormItem>
                 <FormLabel>Description</FormLabel>
                 <FormControl>
-                  <Textarea {...field} rows={3} />
+                  <RichTextEditor 
+                    value={field.value} 
+                    onChange={field.onChange}
+                    placeholder="Enter restaurant description with formatting..."
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
